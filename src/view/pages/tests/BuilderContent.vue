@@ -393,61 +393,69 @@
 								      v-model="tab"
 								    >
 								      <v-tab
-								        v-for="item in items"
-								        :key="item.tab"
+								        v-for="(skill, index) in skills"
+								        :key="index"
 								        class="tab-skill"
 								      >
-								        {{ item.tab }}
+								        {{ skill.name }}
 								      </v-tab>
 
 								    </v-tabs>
-
+	
 								    <v-tabs-items v-model="tab">
 								      <v-tab-item
-								        v-for="item in items"
-								        :key="item.tab"
+								        v-for="(skill, index) in skills"
+								        :key="index"
 								      >
 								        <v-card flat>
 								          <v-card-text>
 								          	<v-tabs vertical>
-												      <v-tab v-for="(section, index) in sections" :key="index">
-												        <v-icon left>mdi-format-align-justify</v-icon>
-												        {{ section.tab }}
-												      </v-tab>
-															<v-tab @click.prevent="openDialogSection"><v-icon dark>mdi-plus</v-icon></v-tab>
-
-												      <v-tab-item  v-for="(section, index) in sections" :key="index">
-												        <v-card flat class="ml-4">
-																	<h5 class="mt-4">section description</h5>
-												          <div class="mt-4">
-															      <v-btn class="ma-2 btn-add-file" depressed outlined large>
-																      <v-icon left>mdi-file-image</v-icon> Add Media
-																    </v-btn>
-																    <v-btn class="ma-2 ml-2 btn-add-file" depressed outlined large>
-																      <v-icon left>mdi-file-image</v-icon> Add Post
-																    </v-btn>
-															  	</div>
-															  	<div class="mt-4">
-															  		<v-btn class="ma-2 btn-add-exer" x-small large>
-																      <v-icon dark>mdi-plus</v-icon>Add Exercise
-																    </v-btn>
-																    <div class="ml-10 mt-4">
-																    	<h6>exercise title</h6>
-																			<p>exercise description</p>
-																			<v-btn class="ma-2 btn-add-exer" x-small large>
-																	      <v-icon dark>mdi-plus</v-icon>Add Question
+								          		<template v-for="(section, i) in skill.sections">
+													      <v-tab v-if="skill.sections.length" :key="i" class="tab-section">
+													        <v-icon left>mdi-format-align-justify</v-icon>
+													        {{ section.title }}
+													      </v-tab>
+												    	</template>
+								     					<v-icon @click="openDialogSection(index)">mdi-plus</v-icon>
+											
+															<template v-for="(section, i) in skill.sections">
+																<v-tab-item v-if="skill.sections.length" :key="i">
+													        <v-card flat class="ml-4">
+																		<h5 class="mt-4">{{ section.description }}</h5>
+													          <div class="mt-4">
+																      <v-btn class="ma-2 btn-add-file" depressed outlined large>
+																	      <v-icon left>mdi-file-image</v-icon> Add Media
 																	    </v-btn>
-																	    <div class="ml-10 mt-4">
-																	    	<h6>question title</h6>
-																	    	<p>question description</p>
-																	    	<p>type question</p>
-																	    </div>
-																    </div>
-															  	</div>
-																	
-												        </v-card>
-												      </v-tab-item>
+																	    <v-btn class="ma-2 ml-2 btn-add-file" depressed outlined large>
+																	      <v-icon left>mdi-file-image</v-icon> Add Post
+																	    </v-btn>
+																  	</div>
+																  	<div class="mt-4">
+																  		<v-btn @click="openDialogExercise()" class="ma-2 btn-add-exer" x-small large>
+																	      <v-icon dark>mdi-plus</v-icon>Add Exercise
+																	    </v-btn>
+																	    <template v-for="(exercise, iExer) in section.exercises">
+																		    <div v-if="section.exercises.length" class="ml-10 mt-4">
+																		    	<h6>{{exercise.title}}</h6>
+																					<p>{{exercise.description}}</p>
+																					<v-btn class="ma-2 btn-add-exer" x-small large>
+																			      <v-icon dark>mdi-plus</v-icon>Add Question
+																			    </v-btn>
+																			    <div class="ml-10 mt-4">
+																			    	<h6>question title</h6>
+																			    	<p>question description</p>
+																			    	<p>type question</p>
+																			    </div>
+																		    </div>
+																	  	</template>
+																  	</div>
+																		
+													        </v-card>
+													      </v-tab-item>
+															</template>
 												      
+
+												      <!-- <v-tab @click.prevent="openDialogSection"><v-icon dark>mdi-plus</v-icon></v-tab> -->
 												    </v-tabs>
 								          </v-card-text>
 								        </v-card>
@@ -502,19 +510,60 @@
 			        <v-container>
 			          <v-row>
 			            <v-col cols="12">
-			              <v-text-field label="Email*" required></v-text-field>
+			              <v-text-field label="Title" v-model="inputTitleSection" required></v-text-field>
 			            </v-col>
 			            <v-col cols="12">
-			              <v-text-field label="Password*" type="password" required></v-text-field>
+			              <v-textarea
+						          filled
+						          label="Description"
+						          v-model="inputDesSection"
+						        ></v-textarea>
 			            </v-col>
 			          </v-row>
 			        </v-container>
-			        <small>*indicates required field</small>
 			      </v-card-text>
 			      <v-card-actions>
 			        <v-spacer></v-spacer>
 			        <v-btn color="blue darken-1" text @click="dialogSection = false">Close</v-btn>
-			        <v-btn color="blue darken-1" text @click="dialogSection = false">Save</v-btn>
+			        <v-btn color="blue darken-1" text @click="btnAddSection">Add</v-btn>
+			      </v-card-actions>
+			    </v-card>
+			  </v-dialog>
+			</v-row>
+
+			<v-row justify="center">
+			  <v-dialog v-model="dialogExercise" persistent max-width="600px">
+			    <v-card>
+			      <v-card-title>
+			        <span class="headline">Add Exercise</span>
+			      </v-card-title>
+			      <v-card-text>
+			        <v-container>
+			          <v-row>
+			            <v-col cols="12" sm="6">
+			              <v-select
+			                :items="typeExerciseName"
+			                label="Question type"
+			                required
+			              ></v-select>
+			            </v-col>
+			           	<v-col cols="12">
+			              <v-text-field label="Title" v-model="inputTitleExercise" required></v-text-field>
+			            </v-col>
+			            <v-col cols="12">
+			              <v-textarea
+						          filled
+						          label="Description"
+						          v-model="inputDesExercise"
+						        ></v-textarea>
+			            </v-col>
+			          </v-row>
+			        </v-container>
+			      </v-card-text>
+			      <v-card-actions>
+			        <v-spacer></v-spacer>
+			        <v-btn color="blue darken-1" text @click="dialogExercise = false">Close</v-btn>
+			        <v-btn color="blue darken-1" text @click="dialogExercise = false">Add</v-btn>
 			      </v-card-actions>
 			    </v-card>
 			  </v-dialog>
@@ -542,10 +591,13 @@ export default {
 
     return {
     	dialogSection:false,
-    	closeSkills:false,
-    	addSkills:true,
+    	dialogExercise: false,
+    	indexSectionCurrent: null,
+    	inputTitleSection: '',
+    	inputDesSection: '',
+    	inputTitleExercise: '',
+    	inputDesExercise: '',
 			autoUpdate: true,
-			dataSkill: '',
 	    friends: [],
 	    isUpdating: false,
 	    name: 'Midnight Crew',
@@ -555,30 +607,37 @@ export default {
 	      { name: 'Trevor Hansen'},
 	      { name: 'Tucker Smith'},
 	    ],
-	    title: 'The summer breeze',
+
 	    tab: null,
-      items: [
-        { tab: 'Speaking' },
-        { tab: 'Reading' },
-        { tab: 'Writing' },
-        { tab: 'Listening' },
-        { tab: 'Vocabulary' },
-        { tab: 'Grammar' },
-      ],
-
-      sections: [
-      	{ tab: 'Section1' },
-      ],
-      typeExercise: ['Short answer', 'Paragraph'],
-
+      typeExerciseName: ['Short answer', 'True/False/Not Given', 'Yes/No/Not Given', 'Single Choice', 'Single Select', 'Multiple Choice', 'Paragraph', 'File Upload'],
+      typeExerciseValue: [1, 21, 22, 2, 3, 4, 5, 6],
       skills:[
       	{ 
       		name: 'Speaking',
       	  selected: true, 
       	  sections:[
       	  	{
-      	  		title:'',
-      	  		description: '',
+      	  		title:'Section1',
+      	  		description: 'description Section1',
+      	  		file: '',
+      	  		exercises: [
+	      	  		{
+	      	  			title: '',
+	      	  			description: '',
+	      	  			questions: [
+	      	  				{
+	      	  					title: '',
+	      	  					description: '',
+	      	  					type: '',
+	      	  				}
+	      	  			],
+	      	  		}
+      	  		
+      	  		],
+      	  	},
+      	  	{
+      	  		title:'Section2',
+      	  		description: 'description Section2',
       	  		file: '',
       	  		exercises: [
 	      	  		{
@@ -601,51 +660,126 @@ export default {
       		name: 'Reading',
       	  selected: false, 
       	  sections:[
-      	  	{
-      	  		title:'',
-      	  		description: '',
-      	  		file: '',
-      	  		exercises: [
-	      	  		{
-	      	  			title: '',
-	      	  			description: '',
-	      	  			questions: [
-	      	  				{
-	      	  					title: '',
-	      	  					description: '',
-	      	  					type: '',
-	      	  				}
-	      	  			],
-	      	  		}
+      	  	// {
+      	  	// 	title:'',
+      	  	// 	description: '',
+      	  	// 	file: '',
+      	  	// 	exercises: [
+	      	  // 		{
+	      	  // 			title: '',
+	      	  // 			description: '',
+	      	  // 			questions: [
+	      	  // 				{
+	      	  // 					title: '',
+	      	  // 					description: '',
+	      	  // 					type: '',
+	      	  // 				}
+	      	  // 			],
+	      	  // 		}
       	  		
-      	  		],
-      	  	},
+      	  	// 	],
+      	  	// },
       	  ] 
       	},
       	{ 
       		name: 'Writing',
       	  selected: false, 
       	  sections:[
-      	  	{
-      	  		title:'',
-      	  		description: '',
-      	  		file: '',
-      	  		exercises: [
-	      	  		{
-	      	  			title: '',
-	      	  			description: '',
-	      	  			questions: [
-	      	  				{
-	      	  					title: '',
-	      	  					description: '',
-	      	  					type: '',
-	      	  				}
-	      	  			],
-	      	  		}
+      	  	// {
+      	  	// 	title:'',
+      	  	// 	description: '',
+      	  	// 	file: '',
+      	  	// 	exercises: [
+	      	  // 		{
+	      	  // 			title: '',
+	      	  // 			description: '',
+	      	  // 			questions: [
+	      	  // 				{
+	      	  // 					title: '',
+	      	  // 					description: '',
+	      	  // 					type: '',
+	      	  // 				}
+	      	  // 			],
+	      	  // 		}
       	  		
-      	  		],
-      	  	},
+      	  	// 	],
+      	  	// },
       	  ] 
+      	},
+      	{ 
+      		name: 'Listening',
+      	  selected: false, 
+      	  sections:[
+      	  	// {
+      	  	// 	title:'',
+      	  	// 	description: '',
+      	  	// 	file: '',
+      	  	// 	exercises: [
+	      	  // 		{
+	      	  // 			title: '',
+	      	  // 			description: '',
+	      	  // 			questions: [
+	      	  // 				{
+	      	  // 					title: '',
+	      	  // 					description: '',
+	      	  // 					type: '',
+	      	  // 				}
+	      	  // 			],
+	      	  // 		}
+      	  		
+      	  	// 	],
+      	  	// },
+      	  ] 
+      	},
+      	{ 
+      		name: 'Vocabulary',
+      	  selected: false, 
+      	  // sections:[
+      	  // 	{
+      	  // 		title:'',
+      	  // 		description: '',
+      	  // 		file: '',
+      	  // 		exercises: [
+	      	 //  		{
+	      	 //  			title: '',
+	      	 //  			description: '',
+	      	 //  			questions: [
+	      	 //  				{
+	      	 //  					title: '',
+	      	 //  					description: '',
+	      	 //  					type: '',
+	      	 //  				}
+	      	 //  			],
+	      	 //  		}
+      	  		
+      	  // 		],
+      	  // 	},
+      	  // ] 
+      	},
+      	{ 
+      		name: 'Grammar',
+      	  selected: false, 
+      	  // sections:[
+      	  // 	{
+      	  // 		title:'',
+      	  // 		description: '',
+      	  // 		file: '',
+      	  // 		exercises: [
+	      	 //  		{
+	      	 //  			title: '',
+	      	 //  			description: '',
+	      	 //  			questions: [
+	      	 //  				{
+	      	 //  					title: '',
+	      	 //  					description: '',
+	      	 //  					type: '',
+	      	 //  				}
+	      	 //  			],
+	      	 //  		}
+      	  		
+      	  // 		],
+      	  // 	},
+      	  // ] 
       	},
       ],
     }
@@ -699,9 +833,27 @@ export default {
       const index = this.friends.indexOf(item.name)
       if (index >= 0) this.friends.splice(index, 1)
     },
-  	openDialogSection() {
+  	openDialogSection(index) {
+  		this.indexSectionCurent = index;
   		this.dialogSection = true;
-  	}
+  	},
+  	btnAddSection() {
+  		//console.log(this.skills[this.indexSectionCurent]);
+
+  		let data = {
+  			title: this.inputTitleSection,
+  			description: this.inputDesSection
+  		}
+  		
+  		this.skills[this.indexSectionCurent].sections.push(data);
+  		this.tab = this.inputTitleSection;
+  		this.dialogSection = false;
+  	},
+  	openDialogExercise() {
+  		//this.indexExerciseCurent = index;
+  		this.dialogExercise = true;
+  	},
+
   }
 }
 </script>
@@ -716,6 +868,10 @@ export default {
 .default-padding{
 	padding: 0;
 	border: none
+}
+.tab-section{
+	text-align: left;
+  display: list-item;
 }
 .input-skill{
 	border: 1px solid white;
