@@ -37,7 +37,7 @@
 
 	        <!--begin: Wizard Body-->
 	        <div class="row justify-content-center my-10 px-8 my-lg-15 px-lg-10">
-	          <div class="col-xl-12 col-xxl-7">
+	          <div class="col-xl-12 col-xxl-12">
 	            <!--begin: Wizard Form-->
 	            <form class="form" id="kt_form">
 	              <!--begin: Wizard Step 1-->
@@ -388,14 +388,18 @@
 	                <h4 class="mb-10 font-weight-bold text-dark">
 	                  Skill & Build Content
 	                </h4>
+	                <v-btn color="#05cdff" class="mb-2" @click="openDialogSkill">
+	                	<v-icon color="white">mdi-plus</v-icon><p style="color:white" class="ml-2 mt-4">Add Skill</p>
+	                </v-btn>
 	                <v-card>
 								    <v-tabs
 								      v-model="tab"
+											class="tab-skill"
+											background-color="#C9F7F5"
 								    >
 								      <v-tab
 								        v-for="(skill, index) in skills"
 								        :key="index"
-								        class="tab-skill"
 								      >
 								        {{ skill.name }}
 								      </v-tab>
@@ -435,16 +439,15 @@
 																	      <v-icon dark>mdi-plus</v-icon>Add Exercise
 																	    </v-btn>
 																	    <template v-for="(exercise, iExer) in section.exercises">
-																		    <div v-if="section.exercises.length" class="ml-10 mt-4">
+																		    <div v-if="section.exercises.length" class="ml-10 mt-4" :key="iExer">
 																		    	<h6>{{exercise.title}}</h6>
 																					<p>{{exercise.description}}</p>
-																					<v-btn class="ma-2 btn-add-exer" x-small large>
+																					<v-btn @click="openDialogQuestion()" class="ma-2 btn-add-exer" x-small large>
 																			      <v-icon dark>mdi-plus</v-icon>Add Question
 																			    </v-btn>
 																			    <div class="ml-10 mt-4">
 																			    	<h6>question title</h6>
 																			    	<p>question description</p>
-																			    	<p>type question</p>
 																			    </div>
 																		    </div>
 																	  	</template>
@@ -453,9 +456,7 @@
 													        </v-card>
 													      </v-tab-item>
 															</template>
-												      
 
-												      <!-- <v-tab @click.prevent="openDialogSection"><v-icon dark>mdi-plus</v-icon></v-tab> -->
 												    </v-tabs>
 								          </v-card-text>
 								        </v-card>
@@ -500,6 +501,38 @@
 	      </div>
 	    </div>
 	    <!--end: Wizard-->
+			
+			<v-row justify="center">
+			  <v-dialog v-model="dialogSkill" persistent max-width="600px">
+			    <v-card>
+			      <v-card-title>
+			        <span class="headline">Add Skill</span>
+			      </v-card-title>
+			      <v-card-text>
+			        <v-container>
+			          <v-row>
+			            <v-col cols="12">
+			              <v-col cols="12" sm="6">
+			              <v-select
+			                :items="optionSkill"
+			                label="Choose your skill"
+			                required
+			                v-model="dataTitleSkill"
+			              ></v-select>
+			            </v-col>
+			            </v-col>
+			          </v-row>
+			        </v-container>
+			      </v-card-text>
+			      <v-card-actions>
+			        <v-spacer></v-spacer>
+			        <v-btn color="blue darken-1" text @click="dialogSkill = false">Close</v-btn>
+			        <v-btn color="blue darken-1" text @click="btnAddSkill">Add</v-btn>
+			      </v-card-actions>
+			    </v-card>
+			  </v-dialog>
+			</v-row>
+
 	    <v-row justify="center">
 			  <v-dialog v-model="dialogSection" persistent max-width="600px">
 			    <v-card>
@@ -525,7 +558,7 @@
 			      <v-card-actions>
 			        <v-spacer></v-spacer>
 			        <v-btn color="blue darken-1" text @click="dialogSection = false">Close</v-btn>
-			        <v-btn color="blue darken-1" text @click="btnAddSection">Add</v-btn>
+			        <v-btn color="blue darken-1" text @click="dialogSection">Add</v-btn>
 			      </v-card-actions>
 			    </v-card>
 			  </v-dialog>
@@ -540,13 +573,6 @@
 			      <v-card-text>
 			        <v-container>
 			          <v-row>
-			            <v-col cols="12" sm="6">
-			              <v-select
-			                :items="typeExerciseName"
-			                label="Question type"
-			                required
-			              ></v-select>
-			            </v-col>
 			           	<v-col cols="12">
 			              <v-text-field label="Title" v-model="inputTitleExercise" required></v-text-field>
 			            </v-col>
@@ -564,6 +590,151 @@
 			        <v-spacer></v-spacer>
 			        <v-btn color="blue darken-1" text @click="dialogExercise = false">Close</v-btn>
 			        <v-btn color="blue darken-1" text @click="dialogExercise = false">Add</v-btn>
+			      </v-card-actions>
+			    </v-card>
+			  </v-dialog>
+			</v-row>
+
+			<v-row justify="center">
+			  <v-dialog v-model="dialogQuestion" persistent max-width="600px">
+			    <v-card>
+			      <v-card-title>
+			        <span class="headline">Add Question</span>
+			      </v-card-title>
+			      <v-card-text>
+			        <v-container>
+			          <v-row>
+			           	<v-col cols="12">
+			              <v-text-field label="Title" v-model="inputTitleQuestion" required></v-text-field>
+			            </v-col>
+			            <v-col cols="12">
+			              <v-textarea
+						          filled
+						          label="Description"
+						          v-model="inputDesQuestion"
+						        ></v-textarea>
+			            </v-col>
+			            <v-col cols="12" sm="6">
+			              <v-select
+			                :items="typeQuestionName"
+			                label="Question type"
+			                required
+			                v-model="data_type_question"
+			              ></v-select>
+			            </v-col>
+			            <template v-if="data_type_question == 'Short answer'">
+			            	<v-col cols="3">
+				            	<v-text-field
+					              label="Max words"
+					              required
+					              type="number"
+					            ></v-text-field>
+				            </v-col>
+				            <v-col cols="3">
+				            	<v-text-field
+					              label="Max numbers"
+					              required
+					              type="number"
+					            ></v-text-field>
+				            </v-col>
+				            <v-col cols="12">
+				            	<v-text-field
+					              label="Correct answer"
+					              required
+					            ></v-text-field>
+				            </v-col>
+			            </template>
+			            <template v-if="data_type_question == 'True/False/Not Given'">
+			            	<v-col cols="12">
+				            	<v-radio-group v-model="radioTrueFalse">
+										    <v-radio label="True" value="true"></v-radio>
+										    <v-radio label="False" value="false"></v-radio>
+										    <v-radio label="Not Given" value="not given"></v-radio>
+										  </v-radio-group>
+									  </v-col>
+			            </template>
+			            <template v-if="data_type_question == 'Yes/No/Not Given'">
+			            	<v-col cols="12">
+				            	<v-radio-group v-model="radioYesNo">
+										    <v-radio label="Yes" value="yes"></v-radio>
+										    <v-radio label="No" value="no"></v-radio>
+										    <v-radio label="Not Given" value="not given"></v-radio>
+										  </v-radio-group>
+									  </v-col>
+			            </template>
+			            <template v-if="data_type_question == 'Single Choice'">
+			            	<v-col cols="3">
+			            		<v-btn large @click="totalOptionSingleChoice++">
+									      <v-icon>mdi-plus</v-icon>
+									    </v-btn>
+			            	</v-col>
+			            	<v-col cols="12">
+				            	<v-radio-group v-model="radioYesNo">
+				            		<template v-for="i in totalOptionSingleChoice">
+											    <v-radio :value="i" :key="i">
+										        <template v-slot:label>
+										          <v-text-field :label="'Option' + i"></v-text-field>
+										          <v-btn class="mb-2"><v-icon @click="totalOptionSingleChoice--">mdi-delete</v-icon></v-btn>
+										        </template>
+										      </v-radio>
+				            		</template>
+										  </v-radio-group>
+									  </v-col>
+			            </template>
+			            <template v-if="data_type_question == 'Single Select'">
+			            	<v-col cols="3">
+			            		<v-btn large @click="totalOptionSingleSelect++">
+									      <v-icon>mdi-plus</v-icon>
+									    </v-btn>
+			            	</v-col>
+			            	<v-col cols="12">
+				            	<v-radio-group v-model="radioYesNo">
+				            		<template v-for="i in totalOptionSingleSelect">
+											    <v-radio :value="i" :key="i">
+										        <template v-slot:label>
+										          <v-text-field :label="'Option' + i"></v-text-field>
+										          <v-btn class="mb-2" @click="totalOptionSingleSelect--"><v-icon>mdi-delete</v-icon></v-btn>
+										        </template>
+										      </v-radio>
+				            		</template>
+										  </v-radio-group>
+									  </v-col>
+			            </template>
+			            <template v-if="data_type_question == 'Multiple Choice'">
+			            	<v-col cols="3">
+			            		<v-btn large @click="totalOptionMultipleChoice++">
+									      <v-icon>mdi-plus</v-icon>
+									    </v-btn>
+			            	</v-col>
+			            	<v-col cols="12">
+			            		<template v-for="i in totalOptionMultipleChoice">
+				            		<v-row align="center" :key="i">
+						            	<v-checkbox
+						            		hide-details
+									        ></v-checkbox>
+									        <v-text-field :label="'Option' +i"></v-text-field>
+									        <v-btn class="mb-2" @click="totalOptionMultipleChoice--"><v-icon>mdi-delete</v-icon></v-btn>
+								        </v-row>
+							      	</template>
+									  </v-col>
+			            </template>
+			            <template v-if="data_type_question == 'Paragraph'">
+			            	<v-col cols="3">
+				            	<v-text-field
+					              label="Max words"
+					              required
+					              type="number"
+					            ></v-text-field>
+				            </v-col>
+			            </template>
+			            <template v-if="data_type_question == 'File Upload'"></template>
+			          </v-row>
+			        </v-container>
+			      </v-card-text>
+			      <v-card-actions>
+			        <v-spacer></v-spacer>
+			        <v-btn color="blue darken-1" text @click="dialogQuestion = false">Close</v-btn>
+			        <v-btn color="blue darken-1" text @click="dialogQuestion = false">Add</v-btn>
 			      </v-card-actions>
 			    </v-card>
 			  </v-dialog>
@@ -590,13 +761,25 @@ export default {
   data () {
 
     return {
+    	data_type_question: null,
+    	dialogSkill: false,
     	dialogSection:false,
     	dialogExercise: false,
+    	dialogQuestion: false,
     	indexSectionCurrent: null,
+    	dataTitleSkill: '',
     	inputTitleSection: '',
     	inputDesSection: '',
     	inputTitleExercise: '',
     	inputDesExercise: '',
+    	inputTitleQuestion: '',
+    	inputDesQuestion: '',
+    	radioTrueFalse: null,
+    	radioYesNo: null,
+    	totalOptionSingleChoice: 2,
+    	totalOptionSingleSelect: 2,
+    	totalOptionMultipleChoice: 2,
+
 			autoUpdate: true,
 	    friends: [],
 	    isUpdating: false,
@@ -608,9 +791,11 @@ export default {
 	      { name: 'Tucker Smith'},
 	    ],
 
+	    optionSkill:['Speaking','Reading','Writing','Listing','Vocabulary','Grammar'],
+	    optionSkillSelected:[],
 	    tab: null,
-      typeExerciseName: ['Short answer', 'True/False/Not Given', 'Yes/No/Not Given', 'Single Choice', 'Single Select', 'Multiple Choice', 'Paragraph', 'File Upload'],
-      typeExerciseValue: [1, 21, 22, 2, 3, 4, 5, 6],
+      typeQuestionName: ['Short answer', 'True/False/Not Given', 'Yes/No/Not Given', 'Single Choice', 'Single Select', 'Multiple Choice', 'Paragraph', 'File Upload'],
+      typeQUestionValue: [1, 21, 22, 2, 3, 4, 5, 6],
       skills:[
       	{ 
       		name: 'Speaking',
@@ -618,17 +803,23 @@ export default {
       	  sections:[
       	  	{
       	  		title:'Section1',
-      	  		description: 'description Section1',
+      	  		description: 'Description Section1',
       	  		file: '',
       	  		exercises: [
 	      	  		{
-	      	  			title: '',
-	      	  			description: '',
+	      	  			title: 'Exercises Title1',
+	      	  			description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nihil fuga aspernatur cumque esse rerum tenetur qui mollitia natus, ad animi itaque, eum vero accusamus voluptates modi consequuntur doloremque corporis omnis.',
 	      	  			questions: [
 	      	  				{
 	      	  					title: '',
 	      	  					description: '',
-	      	  					type: '',
+	      	  					question_type: '',
+	      	  					answers:[ 
+	      	  					  {
+	      	  							type: '',
+	      	  							content: '',
+	      	  						}
+	      	  					]
 	      	  				}
 	      	  			],
 	      	  		}
@@ -734,7 +925,7 @@ export default {
       	{ 
       		name: 'Vocabulary',
       	  selected: false, 
-      	  // sections:[
+      	  sections:[
       	  // 	{
       	  // 		title:'',
       	  // 		description: '',
@@ -754,12 +945,12 @@ export default {
       	  		
       	  // 		],
       	  // 	},
-      	  // ] 
+      	   ] 
       	},
       	{ 
       		name: 'Grammar',
       	  selected: false, 
-      	  // sections:[
+      	  sections:[
       	  // 	{
       	  // 		title:'',
       	  // 		description: '',
@@ -779,7 +970,7 @@ export default {
       	  		
       	  // 		],
       	  // 	},
-      	  // ] 
+      	  ] 
       	},
       ],
     }
@@ -833,6 +1024,12 @@ export default {
       const index = this.friends.indexOf(item.name)
       if (index >= 0) this.friends.splice(index, 1)
     },
+  	openDialogSkill() {
+  		this.dialogSkill = true;
+  	},
+  	btnAddSkill() {
+  		this.optionSkillSelected.push(this.dataTitleSkill);
+  	},
   	openDialogSection(index) {
   		this.indexSectionCurent = index;
   		this.dialogSection = true;
@@ -853,15 +1050,14 @@ export default {
   		//this.indexExerciseCurent = index;
   		this.dialogExercise = true;
   	},
-
+  	openDialogQuestion() {
+  		this.dialogQuestion = true;
+  	}
   }
 }
 </script>
 
 <style lang="css" scoped>
-.tab-skill{
-	background-color: #1BC5BD !important;
-}
 .icon-skill {
 	padding-right: 10px;
 }
