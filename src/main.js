@@ -7,6 +7,9 @@ import MockService from "./core/mock/mock.service";
 import { VERIFY_AUTH } from "./core/services/store/auth.module";
 import { RESET_LAYOUT_CONFIG } from "@/core/services/store/config.module";
 
+import "vuetify/dist/vuetify.min.css";
+import ckeditor from "@ckeditor/ckeditor5-vue";
+
 Vue.config.productionTip = false;
 
 // Global 3rd party plugins
@@ -47,6 +50,8 @@ router.beforeEach((to, from, next) => {
     window.scrollTo(0, 0);
   }, 100);
 });
+
+Vue.use(ckeditor);
 
 new Vue({
   router,

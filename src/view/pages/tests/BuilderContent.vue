@@ -77,11 +77,13 @@
 				                label="Description"
 				                label-for="textarea"
 				              >
-				                <b-form-textarea
+				                <!-- <b-form-textarea
 			                    id="textarea"
 			                    placeholder="Enter text"
 			                    rows="8"
-			                  ></b-form-textarea>
+			                  ></b-form-textarea> -->
+
+			                  <ckeditor :editor="editor" v-model="editorData"></ckeditor>
 				              </b-form-group>
 
 											<b-form-group
@@ -391,25 +393,25 @@
 	                <v-btn color="#05cdff" class="mb-2" @click="openDialogSkill">
 	                	<v-icon color="white">mdi-plus</v-icon><p style="color:white" class="ml-2 mt-4">Add Skill</p>
 	                </v-btn>
-	                <v-card>
+	                <v-card v-if="skills.length">
 								    <v-tabs
-								      v-model="tab"
+								      v-model="tabSkill"
 											class="tab-skill"
 											background-color="#C9F7F5"
 								    >
 								      <v-tab
-								        v-for="(skill, index) in skills"
-								        :key="index"
+								        v-for="skill in skills"
+								        :key="skill.id"
 								      >
 								        {{ skill.name }}
 								      </v-tab>
 
 								    </v-tabs>
 	
-								    <v-tabs-items v-model="tab">
+								    <v-tabs-items v-model="tabSkill">
 								      <v-tab-item
 								        v-for="(skill, index) in skills"
-								        :key="index"
+								        :key="skill.id"
 								      >
 								        <v-card flat>
 								          <v-card-text>
@@ -435,20 +437,22 @@
 																	    </v-btn>
 																  	</div>
 																  	<div class="mt-4">
-																  		<v-btn @click="openDialogExercise()" class="ma-2 btn-add-exer" x-small large>
+																  		<v-btn @click="openDialogExercise(index, i)" class="ma-2 btn-add-exer" x-small large>
 																	      <v-icon dark>mdi-plus</v-icon>Add Exercise
 																	    </v-btn>
 																	    <template v-for="(exercise, iExer) in section.exercises">
 																		    <div v-if="section.exercises.length" class="ml-10 mt-4" :key="iExer">
 																		    	<h6>{{exercise.title}}</h6>
 																					<p>{{exercise.description}}</p>
-																					<v-btn @click="openDialogQuestion()" class="ma-2 btn-add-exer" x-small large>
+																					<v-btn @click="openDialogQuestion(index, i, iExer)" class="ma-2 btn-add-exer" x-small large>
 																			      <v-icon dark>mdi-plus</v-icon>Add Question
 																			    </v-btn>
-																			    <div class="ml-10 mt-4">
-																			    	<h6>question title</h6>
-																			    	<p>question description</p>
-																			    </div>
+																			    <template v-for="(question, iQues) in exercise.questions">
+																				    <div v-if="exercise.questions.length" class="ml-10 mt-4" :key="iQues">
+																				    	<h6>{{question.title}}</h6>
+																							<p>{{question.description}}</p>
+																				    </div>
+																			  	</template>
 																		    </div>
 																	  	</template>
 																  	</div>
@@ -558,7 +562,7 @@
 			      <v-card-actions>
 			        <v-spacer></v-spacer>
 			        <v-btn color="blue darken-1" text @click="dialogSection = false">Close</v-btn>
-			        <v-btn color="blue darken-1" text @click="dialogSection">Add</v-btn>
+			        <v-btn color="blue darken-1" text @click="btnAddSection">Add</v-btn>
 			      </v-card-actions>
 			    </v-card>
 			  </v-dialog>
@@ -583,13 +587,21 @@
 						          v-model="inputDesExercise"
 						        ></v-textarea>
 			            </v-col>
+			            <v-col cols="12" sm="6">
+			              <v-select
+			                :items="typeQuestionName"
+			                label="Question type"
+			                required
+			                v-model="data_type_question"
+			              ></v-select>
+			            </v-col>
 			          </v-row>
 			        </v-container>
 			      </v-card-text>
 			      <v-card-actions>
 			        <v-spacer></v-spacer>
 			        <v-btn color="blue darken-1" text @click="dialogExercise = false">Close</v-btn>
-			        <v-btn color="blue darken-1" text @click="dialogExercise = false">Add</v-btn>
+			        <v-btn color="blue darken-1" text @click="btnAddExercise">Add</v-btn>
 			      </v-card-actions>
 			    </v-card>
 			  </v-dialog>
@@ -615,13 +627,13 @@
 						        ></v-textarea>
 			            </v-col>
 			            <v-col cols="12" sm="6">
-			              <v-select
-			                :items="typeQuestionName"
-			                label="Question type"
-			                required
-			                v-model="data_type_question"
-			              ></v-select>
-			            </v-col>
+			            	<v-text-field
+			            	  v-model="data_type_question"
+				              label="Type Question"
+				              required
+				              readonly
+				            ></v-text-field>
+				           </v-col>
 			            <template v-if="data_type_question == 'Short answer'">
 			            	<v-col cols="3">
 				            	<v-text-field
@@ -734,7 +746,7 @@
 			      <v-card-actions>
 			        <v-spacer></v-spacer>
 			        <v-btn color="blue darken-1" text @click="dialogQuestion = false">Close</v-btn>
-			        <v-btn color="blue darken-1" text @click="dialogQuestion = false">Add</v-btn>
+			        <v-btn color="blue darken-1" text @click="btnAddQuestion">Add</v-btn>
 			      </v-card-actions>
 			    </v-card>
 			  </v-dialog>
@@ -753,6 +765,7 @@ import { SET_BREADCRUMB } from "@/core/services/store/breadcrumbs.module";
 import KTUtil from "@/assets/js/components/util";
 import KTWizard from "@/assets/js/components/wizard";
 import Swal from "sweetalert2";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 export default {
 
@@ -761,13 +774,18 @@ export default {
   data () {
 
     return {
-    	data_type_question: null,
+    	editor: ClassicEditor,
+    	editorData:'',
+
+    	data_type_question: 'None',
     	dialogSkill: false,
     	dialogSection:false,
     	dialogExercise: false,
     	dialogQuestion: false,
-    	indexSectionCurrent: null,
-    	dataTitleSkill: '',
+    	indexSkill: null,
+    	indexSection: null,
+    	indexExercise: null,
+    	dataTitleSkill: null,
     	inputTitleSection: '',
     	inputDesSection: '',
     	inputTitleExercise: '',
@@ -779,6 +797,8 @@ export default {
     	totalOptionSingleChoice: 2,
     	totalOptionSingleSelect: 2,
     	totalOptionMultipleChoice: 2,
+    	tabSkill: 0,
+    	tabSection: 0,
 
 			autoUpdate: true,
 	    friends: [],
@@ -792,189 +812,45 @@ export default {
 	    ],
 
 	    optionSkill:['Speaking','Reading','Writing','Listing','Vocabulary','Grammar'],
-	    optionSkillSelected:[],
-	    tab: null,
-      typeQuestionName: ['Short answer', 'True/False/Not Given', 'Yes/No/Not Given', 'Single Choice', 'Single Select', 'Multiple Choice', 'Paragraph', 'File Upload'],
-      typeQUestionValue: [1, 21, 22, 2, 3, 4, 5, 6],
-      skills:[
-      	{ 
-      		name: 'Speaking',
-      	  selected: true, 
-      	  sections:[
-      	  	{
-      	  		title:'Section1',
-      	  		description: 'Description Section1',
-      	  		file: '',
-      	  		exercises: [
-	      	  		{
-	      	  			title: 'Exercises Title1',
-	      	  			description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nihil fuga aspernatur cumque esse rerum tenetur qui mollitia natus, ad animi itaque, eum vero accusamus voluptates modi consequuntur doloremque corporis omnis.',
-	      	  			questions: [
-	      	  				{
-	      	  					title: '',
-	      	  					description: '',
-	      	  					question_type: '',
-	      	  					answers:[ 
-	      	  					  {
-	      	  							type: '',
-	      	  							content: '',
-	      	  						}
-	      	  					]
-	      	  				}
-	      	  			],
-	      	  		}
+      typeQuestionName: ['None' ,'Short answer', 'True/False/Not Given', 'Yes/No/Not Given', 'Single Choice', 'Single Select', 'Multiple Choice', 'Paragraph', 'File Upload'],
+      typeQUestionValue: [0,1, 21, 22, 2, 3, 4, 5, 6],
+      skills: [],
+      // skills:[
+      // 	{ 
+      // 		id: 1,
+      // 		name: 'Speaking',
+      // 	  sections:[
+      // 	  	{
+      // 	  		title:'Section1',
+      // 	  		description: 'Description Section1',
+      // 	  		file: '',
+      // 	  		exercises: [
+	     //  	  		{
+	     //  	  			title: 'Exercises Title1',
+	     //  	  			description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
+	     //  	  			question_type: '',
+	     //  	  			questions: [
+	     //  	  				{
+	     //  	  					title: '',
+	     //  	  					description: '',
+	     //  	  					answers:[ 
+	     //  	  					  {
+	     //  	  							type: '',
+	     //  	  							content: '',
+	     //  	  						}
+	     //  	  					]
+	     //  	  				}
+	     //  	  			],
+	     //  	  		}
       	  		
-      	  		],
-      	  	},
-      	  	{
-      	  		title:'Section2',
-      	  		description: 'description Section2',
-      	  		file: '',
-      	  		exercises: [
-	      	  		{
-	      	  			title: '',
-	      	  			description: '',
-	      	  			questions: [
-	      	  				{
-	      	  					title: '',
-	      	  					description: '',
-	      	  					type: '',
-	      	  				}
-	      	  			],
-	      	  		}
-      	  		
-      	  		],
-      	  	},
-      	  ] 
-      	},
-      	{ 
-      		name: 'Reading',
-      	  selected: false, 
-      	  sections:[
-      	  	// {
-      	  	// 	title:'',
-      	  	// 	description: '',
-      	  	// 	file: '',
-      	  	// 	exercises: [
-	      	  // 		{
-	      	  // 			title: '',
-	      	  // 			description: '',
-	      	  // 			questions: [
-	      	  // 				{
-	      	  // 					title: '',
-	      	  // 					description: '',
-	      	  // 					type: '',
-	      	  // 				}
-	      	  // 			],
-	      	  // 		}
-      	  		
-      	  	// 	],
-      	  	// },
-      	  ] 
-      	},
-      	{ 
-      		name: 'Writing',
-      	  selected: false, 
-      	  sections:[
-      	  	// {
-      	  	// 	title:'',
-      	  	// 	description: '',
-      	  	// 	file: '',
-      	  	// 	exercises: [
-	      	  // 		{
-	      	  // 			title: '',
-	      	  // 			description: '',
-	      	  // 			questions: [
-	      	  // 				{
-	      	  // 					title: '',
-	      	  // 					description: '',
-	      	  // 					type: '',
-	      	  // 				}
-	      	  // 			],
-	      	  // 		}
-      	  		
-      	  	// 	],
-      	  	// },
-      	  ] 
-      	},
-      	{ 
-      		name: 'Listening',
-      	  selected: false, 
-      	  sections:[
-      	  	// {
-      	  	// 	title:'',
-      	  	// 	description: '',
-      	  	// 	file: '',
-      	  	// 	exercises: [
-	      	  // 		{
-	      	  // 			title: '',
-	      	  // 			description: '',
-	      	  // 			questions: [
-	      	  // 				{
-	      	  // 					title: '',
-	      	  // 					description: '',
-	      	  // 					type: '',
-	      	  // 				}
-	      	  // 			],
-	      	  // 		}
-      	  		
-      	  	// 	],
-      	  	// },
-      	  ] 
-      	},
-      	{ 
-      		name: 'Vocabulary',
-      	  selected: false, 
-      	  sections:[
-      	  // 	{
-      	  // 		title:'',
-      	  // 		description: '',
-      	  // 		file: '',
-      	  // 		exercises: [
-	      	 //  		{
-	      	 //  			title: '',
-	      	 //  			description: '',
-	      	 //  			questions: [
-	      	 //  				{
-	      	 //  					title: '',
-	      	 //  					description: '',
-	      	 //  					type: '',
-	      	 //  				}
-	      	 //  			],
-	      	 //  		}
-      	  		
-      	  // 		],
-      	  // 	},
-      	   ] 
-      	},
-      	{ 
-      		name: 'Grammar',
-      	  selected: false, 
-      	  sections:[
-      	  // 	{
-      	  // 		title:'',
-      	  // 		description: '',
-      	  // 		file: '',
-      	  // 		exercises: [
-	      	 //  		{
-	      	 //  			title: '',
-	      	 //  			description: '',
-	      	 //  			questions: [
-	      	 //  				{
-	      	 //  					title: '',
-	      	 //  					description: '',
-	      	 //  					type: '',
-	      	 //  				}
-	      	 //  			],
-	      	 //  		}
-      	  		
-      	  // 		],
-      	  // 	},
-      	  ] 
-      	},
-      ],
+      // 	  		],
+      // 	  	},
+      // 	  ] 
+      // 	},
+      // ],
     }
   },
+  computed: {},
   mounted() {
     this.$store.dispatch(SET_BREADCRUMB, [
       { title: "Wizard" },
@@ -1028,30 +904,77 @@ export default {
   		this.dialogSkill = true;
   	},
   	btnAddSkill() {
-  		this.optionSkillSelected.push(this.dataTitleSkill);
+  		if (this.dataTitleSkill != null) {
+  			let data = {
+  				name: this.dataTitleSkill
+  			}
+  			this.optionSkill.splice(this.optionSkill.findIndex(e => e === this.dataTitleSkill), 1);
+  			this.skills.push(data);
+  			this.tabSkill = this.skills.length - 1;
+  			this.dataTitleSkill = null;
+  		}
+  		this.dialogSkill = false;
   	},
   	openDialogSection(index) {
-  		this.indexSectionCurent = index;
+  		this.indexSkill = index;
   		this.dialogSection = true;
   	},
   	btnAddSection() {
-  		//console.log(this.skills[this.indexSectionCurent]);
-
   		let data = {
   			title: this.inputTitleSection,
   			description: this.inputDesSection
   		}
-  		
-  		this.skills[this.indexSectionCurent].sections.push(data);
-  		this.tab = this.inputTitleSection;
+  		let dataCheck = this.skills[this.indexSkill].sections;
+  		if(dataCheck == undefined || dataCheck == null) {
+  			this.skills[this.indexSkill].sections = [];
+  		}
+  		this.skills[this.indexSkill].sections.push(data);
+  		this.tabSection = this.skills[this.indexSkill].sections.length - 1;
+			this.inputTitleSection = null;
+			this.inputDesSection = null;
   		this.dialogSection = false;
   	},
-  	openDialogExercise() {
-  		//this.indexExerciseCurent = index;
+  	openDialogExercise(indexSkill, indexSection) {
+  		this.indexSkill 	= indexSkill;
+  		this.indexSection = indexSection;
   		this.dialogExercise = true;
   	},
-  	openDialogQuestion() {
+  	btnAddExercise() {
+  		let data = {
+  			title: this.inputTitleExercise,
+  			description: this.inputDesExercise,
+  			question_type: this.data_type_question,
+  		}
+  		let dataCheck = this.skills[this.indexSkill].sections[this.indexSection].exercises;
+  		if(dataCheck == undefined || dataCheck == null) {
+  			this.skills[this.indexSkill].sections[this.indexSection].exercises= [];
+  		}
+  		this.skills[this.indexSkill].sections[this.indexSection].exercises.push(data);
+			this.inputTitleExercise = null;
+			this.inputDesExercise = null;
+			this.data_type_question = null;
+  		this.dialogExercise = false;
+  	},
+  	openDialogQuestion(indexSkill, indexSection, indexExercise) {
+  		this.indexSkill 		= indexSkill;
+  		this.indexSection 	= indexSection;
+  		this.indexExercise 	= indexExercise;
+  		this.data_type_question = this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].question_type;
   		this.dialogQuestion = true;
+  	},
+  	btnAddQuestion() {
+  		let data = {
+  			title: this.inputTitleQuestion,
+  			description: this.inputDesQuestion,
+  		}
+  		let dataCheck = this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].questions;
+  		if(dataCheck == undefined || dataCheck == null) {
+  			this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].questions = [];
+  		}
+  		this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].questions.push(data);
+			this.inputTitleQuestion = null;
+			this.inputDesQuestion = null;
+  		this.dialogQuestion = false;
   	}
   }
 }
