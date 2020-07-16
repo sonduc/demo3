@@ -45,7 +45,7 @@
 	                class="pb-5"
 	                data-wizard-type="step-content"
 	                data-wizard-state="current"
-	               >
+	              	>
 	                <h3 class="mb-10 font-weight-bold text-dark">
 	                  Test & Exercise Builder
 	                </h3>
@@ -76,22 +76,19 @@
 				                label-size="lg"
 				                label="Description"
 				                label-for="textarea"
-				              >
-				                <!-- <b-form-textarea
-			                    id="textarea"
-			                    placeholder="Enter text"
-			                    rows="8"
-			                  ></b-form-textarea> -->
-
+				                >
 			                  <ckeditor :editor="editor" v-model="editorData"></ckeditor>
 				              </b-form-group>
-
+				            </div>
+									</v-col>
+									<v-row>
+										<v-col cols="6">
 											<b-form-group
 				                label-cols="4"
 				                label-cols-lg="2"
 				                label-size="lg"
 				                label="Grading Scale"
-				              >
+				                >
 				              	<v-autocomplete
 						              v-model="friends"
 						              :disabled="isUpdating"
@@ -125,10 +122,10 @@
 						                </template>
 						              </template>
 						            </v-autocomplete>
-						            
 						          </b-form-group>
-
-						          <b-form-group
+										</v-col>
+										<v-col cols="6"> 
+											<b-form-group
 				                label-cols="4"
 				                label-cols-lg="2"
 				                label-size="lg"
@@ -169,8 +166,11 @@
 						              </template>
 						            </v-autocomplete>
 						          </b-form-group>
-
-						          <b-form-group
+										</v-col>
+								  </v-row>
+								  <v-row>
+								  	<v-col cols="6">
+								  		<b-form-group
 				                label-cols="4"
 				                label-cols-lg="2"
 				                label-size="lg"
@@ -211,8 +211,9 @@
 						              </template>
 						            </v-autocomplete>
 						          </b-form-group>
-
-						          <b-form-group
+								  	</v-col>
+								  	<v-col cols="6">
+								  		 <b-form-group
 				                label-cols="4"
 				                label-cols-lg="2"
 				                label-size="lg"
@@ -253,8 +254,11 @@
 						              </template>
 						            </v-autocomplete>
 						          </b-form-group>
-
-						          <b-form-group
+								  	</v-col>
+								  </v-row>
+								  <v-row>
+								  	<v-col cols="6">
+								  		<b-form-group
 				                label-cols="4"
 				                label-cols-lg="2"
 				                label-size="lg"
@@ -295,8 +299,9 @@
 						              </template>
 						            </v-autocomplete>
 						          </b-form-group>
-
-						          <b-form-group
+								  	</v-col>
+								  	<v-col cols="6">
+								  		<b-form-group
 				                label-cols="4"
 				                label-cols-lg="2"
 				                label-size="lg"
@@ -337,8 +342,11 @@
 						              </template>
 						            </v-autocomplete>
 						          </b-form-group>
-
-						          <b-form-group
+								  	</v-col>
+								  </v-row>
+								  <v-row>
+								  	<v-col cols="6">
+								  		<b-form-group
 				                label-cols="4"
 				                label-cols-lg="2"
 				                label-size="lg"
@@ -379,9 +387,8 @@
 						              </template>
 						            </v-autocomplete>
 						          </b-form-group>
-				            </div>
-									</v-col>
-
+								  	</v-col>
+								  </v-row>
 	              </div>
 	              <!--end: Wizard Step 1-->
 
@@ -400,10 +407,11 @@
 											background-color="#C9F7F5"
 								    >
 								      <v-tab
-								        v-for="skill in skills"
+								        v-for="(skill, index) in skills"
 								        :key="skill.id"
 								      >
 								        {{ skill.name }}
+								      	<v-icon right @click="deleteSkill(index)">mdi-close</v-icon>
 								      </v-tab>
 
 								    </v-tabs>
@@ -427,7 +435,9 @@
 															<template v-for="(section, i) in skill.sections">
 																<v-tab-item v-if="skill.sections.length" :key="i">
 													        <v-card flat class="ml-4">
-																		<h5 class="mt-4">{{ section.description }}</h5>
+																		<h3 style="cursor: pointer;" @click="editSection(index, i)">{{section.description}}
+															    		<v-icon right>mdi-file-document-edit-outline</v-icon>
+															    	</h3>
 													          <div class="mt-4">
 																      <v-btn class="ma-2 btn-add-file" depressed outlined large>
 																	      <v-icon left>mdi-file-image</v-icon> Add Media
@@ -441,16 +451,18 @@
 																	      <v-icon dark>mdi-plus</v-icon>Add Exercise
 																	    </v-btn>
 																	    <template v-for="(exercise, iExer) in section.exercises">
-																		    <div v-if="section.exercises.length" class="ml-10 mt-4" :key="iExer">
-																		    	<h6>{{exercise.title}}</h6>
-																					<p>{{exercise.description}}</p>
+																		    <div v-if="section.exercises.length" class="ml-12 mt-4" :key="iExer">
+																		    	<h4 style="cursor: pointer;" @click="editExercise(index, i, iExer)">{{exercise.title}}
+																		    		<v-icon right>mdi-file-document-edit-outline</v-icon>
+																		    	</h4>
+																					<p class="text-description">{{exercise.description}}</p>
 																					<v-btn @click="openDialogQuestion(index, i, iExer)" class="ma-2 btn-add-exer" x-small large>
 																			      <v-icon dark>mdi-plus</v-icon>Add Question
 																			    </v-btn>
 																			    <template v-for="(question, iQues) in exercise.questions">
-																				    <div v-if="exercise.questions.length" class="ml-10 mt-4" :key="iQues">
-																				    	<h6>{{question.title}}</h6>
-																							<p>{{question.description}}</p>
+																				    <div v-if="exercise.questions.length" class="ml-12 mt-4" :key="iQues">
+																				    	<h4>{{question.title}}</h4>
+																							<p class="text-description">{{question.description}}</p>
 																				    </div>
 																			  	</template>
 																		    </div>
@@ -541,7 +553,8 @@
 			  <v-dialog v-model="dialogSection" persistent max-width="600px">
 			    <v-card>
 			      <v-card-title>
-			        <span class="headline">Add Section</span>
+			        <span v-if="type_form_section == 'add'" class="headline">Add Section</span>
+			        <span v-if="type_form_section == 'update'" class="headline">Edit Section</span>
 			      </v-card-title>
 			      <v-card-text>
 			        <v-container>
@@ -562,7 +575,8 @@
 			      <v-card-actions>
 			        <v-spacer></v-spacer>
 			        <v-btn color="blue darken-1" text @click="dialogSection = false">Close</v-btn>
-			        <v-btn color="blue darken-1" text @click="btnAddSection">Add</v-btn>
+			        <v-btn color="blue darken-1" text v-if="type_form_section == 'add'" @click="btnAddSection">Add</v-btn>
+			        <v-btn color="blue darken-1" text v-if="type_form_section == 'update'" @click="btnEditSection">Update</v-btn>
 			      </v-card-actions>
 			    </v-card>
 			  </v-dialog>
@@ -572,7 +586,8 @@
 			  <v-dialog v-model="dialogExercise" persistent max-width="600px">
 			    <v-card>
 			      <v-card-title>
-			        <span class="headline">Add Exercise</span>
+			        <span v-if="type_form_exercise == 'add'" class="headline">Add Exercise</span>
+			        <span v-if="type_form_exercise == 'update'" class="headline">Edit Exercise</span>
 			      </v-card-title>
 			      <v-card-text>
 			        <v-container>
@@ -601,14 +616,15 @@
 			      <v-card-actions>
 			        <v-spacer></v-spacer>
 			        <v-btn color="blue darken-1" text @click="dialogExercise = false">Close</v-btn>
-			        <v-btn color="blue darken-1" text @click="btnAddExercise">Add</v-btn>
+			        <v-btn color="blue darken-1" text v-if="type_form_exercise == 'add'" @click="btnAddExercise">Add</v-btn>
+			        <v-btn color="blue darken-1" text v-if="type_form_exercise == 'update'" @click="btnEditExercise">Update</v-btn>
 			      </v-card-actions>
 			    </v-card>
 			  </v-dialog>
 			</v-row>
 
 			<v-row justify="center">
-			  <v-dialog v-model="dialogQuestion" persistent max-width="600px">
+			  <v-dialog v-model="dialogQuestion" persistent max-width="900px">
 			    <v-card>
 			      <v-card-title>
 			        <span class="headline">Add Question</span>
@@ -650,10 +666,11 @@
 					            ></v-text-field>
 				            </v-col>
 				            <v-col cols="12">
-				            	<v-text-field
+				            	<!-- <v-text-field
 					              label="Correct answer"
 					              required
-					            ></v-text-field>
+					            ></v-text-field> -->
+					            <ckeditor :editor="editor" v-model="editorData"></ckeditor>
 				            </v-col>
 			            </template>
 			            <template v-if="data_type_question == 'True/False/Not Given'">
@@ -799,6 +816,8 @@ export default {
     	totalOptionMultipleChoice: 2,
     	tabSkill: 0,
     	tabSection: 0,
+    	type_form_section: null,
+    	type_form_exercise: null,
 
 			autoUpdate: true,
 	    friends: [],
@@ -813,41 +832,41 @@ export default {
 
 	    optionSkill:['Speaking','Reading','Writing','Listing','Vocabulary','Grammar'],
       typeQuestionName: ['None' ,'Short answer', 'True/False/Not Given', 'Yes/No/Not Given', 'Single Choice', 'Single Select', 'Multiple Choice', 'Paragraph', 'File Upload'],
-      typeQUestionValue: [0,1, 21, 22, 2, 3, 4, 5, 6],
-      skills: [],
-      // skills:[
-      // 	{ 
-      // 		id: 1,
-      // 		name: 'Speaking',
-      // 	  sections:[
-      // 	  	{
-      // 	  		title:'Section1',
-      // 	  		description: 'Description Section1',
-      // 	  		file: '',
-      // 	  		exercises: [
-	     //  	  		{
-	     //  	  			title: 'Exercises Title1',
-	     //  	  			description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
-	     //  	  			question_type: '',
-	     //  	  			questions: [
-	     //  	  				{
-	     //  	  					title: '',
-	     //  	  					description: '',
-	     //  	  					answers:[ 
-	     //  	  					  {
-	     //  	  							type: '',
-	     //  	  							content: '',
-	     //  	  						}
-	     //  	  					]
-	     //  	  				}
-	     //  	  			],
-	     //  	  		}
+      typeQUestionValue: [0 , 1, 21, 22, 2, 3, 4, 5, 6],
+      //skills: [],
+      skills:[
+      	{ 
+      		id: 1,
+      		name: 'Speaking',
+      	  sections:[
+      	  	{
+      	  		title:'Section1',
+      	  		description: 'Description Section1',
+      	  		file: '',
+      	  		exercises: [
+	      	  		{
+	      	  			title: 'Exercises Title1',
+	      	  			description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
+	      	  			question_type: 'Short answer',
+	      	  			// questions: [
+	      	  			// 	{
+	      	  			// 		title: '',
+	      	  			// 		description: '',
+	      	  			// 		answers:[ 
+	      	  			// 		  {
+	      	  			// 				type: '',
+	      	  			// 				content: '',
+	      	  			// 			}
+	      	  			// 		]
+	      	  			// 	}
+	      	  			// ],
+	      	  		}
       	  		
-      // 	  		],
-      // 	  	},
-      // 	  ] 
-      // 	},
-      // ],
+      	  		],
+      	  	},
+      	  ] 
+      	},
+      ],
     }
   },
   computed: {},
@@ -915,7 +934,26 @@ export default {
   		}
   		this.dialogSkill = false;
   	},
+  	deleteSkill(index) {
+  		Swal.fire({
+			  title: 'Are you sure you want to delete?',
+			  icon: 'warning',
+			  showCancelButton: true,
+			  confirmButtonColor: '#3085d6',
+			  cancelButtonColor: '#d33',
+			  confirmButtonText: 'Yes, delete it!'
+			}).then((result) => {
+				if (result.value) {
+				  let data = this.skills[index].name;
+		  		this.skills.splice(index, 1);
+		  		this.optionSkill.push(data);
+	  		}
+			})
+  	},	
   	openDialogSection(index) {
+  		this.type_form_section = 'add';
+  		this.inputTitleSection = null;
+			this.inputDesSection = null;
   		this.indexSkill = index;
   		this.dialogSection = true;
   	},
@@ -930,11 +968,31 @@ export default {
   		}
   		this.skills[this.indexSkill].sections.push(data);
   		this.tabSection = this.skills[this.indexSkill].sections.length - 1;
-			this.inputTitleSection = null;
-			this.inputDesSection = null;
+  		this.dialogSection = false;
+  	},
+  	editSection(indexSkill, indexSection) {
+  		this.dialogSection = true;
+  		this.type_form_section = 'update';
+  		this.indexSkill 		= indexSkill;
+  		this.indexSection 	= indexSection;
+  		let data = this.skills[indexSkill].sections[indexSection];
+  		this.inputTitleSection = data.title;
+			this.inputDesSection = data.description;
+
+  	},
+  	btnEditSection() {
+  		let data = {
+  			title: this.inputTitleSection,
+  			description: this.inputDesSection
+  		}
+  		this.skills[this.indexSkill].sections.splice(this.indexSection, 1, data);
   		this.dialogSection = false;
   	},
   	openDialogExercise(indexSkill, indexSection) {
+  		this.type_form_exercise = 'add';
+  		this.inputTitleExercise = null;
+			this.inputDesExercise = null;
+			this.data_type_question = null;
   		this.indexSkill 	= indexSkill;
   		this.indexSection = indexSection;
   		this.dialogExercise = true;
@@ -950,9 +1008,26 @@ export default {
   			this.skills[this.indexSkill].sections[this.indexSection].exercises= [];
   		}
   		this.skills[this.indexSkill].sections[this.indexSection].exercises.push(data);
-			this.inputTitleExercise = null;
-			this.inputDesExercise = null;
-			this.data_type_question = null;
+  		this.dialogExercise = false;
+  	},
+  	editExercise(indexSkill, indexSection, indexExercise) {
+			this.type_form_exercise = 'update';
+  		this.dialogExercise = true;
+			this.indexSkill 		= indexSkill;
+  		this.indexSection 	= indexSection;
+  		this.indexExercise 	= indexExercise;
+  		let data = this.skills[indexSkill].sections[indexSection].exercises[indexExercise];
+  		this.inputTitleExercise = data.title;
+			this.inputDesExercise = data.description;
+			this.data_type_question = data.question_type;
+  	},
+  	btnEditExercise() {
+  		let data = {
+  			title: this.inputTitleExercise,
+  			description: this.inputDesExercise,
+  			question_type: this.data_type_question,
+  		}
+  		this.skills[this.indexSkill].sections[this.indexSection].exercises.splice(this.indexExercise, 1, data);
   		this.dialogExercise = false;
   	},
   	openDialogQuestion(indexSkill, indexSection, indexExercise) {
@@ -1005,5 +1080,9 @@ export default {
 }
 .btn-add-exer{
 	background-color: #e5e5e5 !important;
+}
+.text-description{
+	font-size: large;
+  max-width: 600px;
 }
 </style>

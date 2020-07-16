@@ -134,7 +134,7 @@ export default {
      * @returns {boolean}
      */
     asideEnabled() {
-      return !!this.layoutConfig("aside.self.display");
+      return this.layoutConfig("aside.self.display");
     },
 
     /**
