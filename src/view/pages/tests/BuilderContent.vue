@@ -461,8 +461,10 @@
 																			    </v-btn>
 																			    <template v-for="(question, iQues) in exercise.questions">
 																				    <div v-if="exercise.questions.length" class="ml-12 mt-4" :key="iQues">
-																				    	<h4>{{question.title}}</h4>
-																							<p class="text-description">{{question.description}}</p>
+																				    	<!-- <h4>{{question.title}}</h4>
+																							<p class="text-description">{{question.description}}</p> -->
+																							
+																						  <TypeQuestion :question="question" :question_type="exercise.question_type" />
 																				    </div>
 																			  	</template>
 																		    </div>
@@ -675,7 +677,7 @@
 			            </template>
 			            <template v-if="data_type_question == 'True/False/Not Given'">
 			            	<v-col cols="12">
-				            	<v-radio-group v-model="radioTrueFalse">
+				            	<v-radio-group v-model="correctTrueFalse">
 										    <v-radio label="True" value="true"></v-radio>
 										    <v-radio label="False" value="false"></v-radio>
 										    <v-radio label="Not Given" value="not given"></v-radio>
@@ -684,7 +686,7 @@
 			            </template>
 			            <template v-if="data_type_question == 'Yes/No/Not Given'">
 			            	<v-col cols="12">
-				            	<v-radio-group v-model="radioYesNo">
+				            	<v-radio-group v-model="correctYesNo">
 										    <v-radio label="Yes" value="yes"></v-radio>
 										    <v-radio label="No" value="no"></v-radio>
 										    <v-radio label="Not Given" value="not given"></v-radio>
@@ -693,17 +695,17 @@
 			            </template>
 			            <template v-if="data_type_question == 'Single Choice'">
 			            	<v-col cols="3">
-			            		<v-btn large @click="totalOptionSingleChoice++">
+			            		<v-btn large @click="addOptionSingleChoice">
 									      <v-icon>mdi-plus</v-icon>
 									    </v-btn>
 			            	</v-col>
 			            	<v-col cols="12">
-				            	<v-radio-group v-model="radioYesNo">
-				            		<template v-for="i in totalOptionSingleChoice">
-											    <v-radio :value="i" :key="i">
+				            	<v-radio-group v-model="correctSingleChoice">
+				            		<template v-for="(option, i) in optionAnswerSingleChoice">
+											    <v-radio :value="option" :key="i">
 										        <template v-slot:label>
-										          <v-text-field :label="'Option' + i"></v-text-field>
-										          <v-btn class="mb-2"><v-icon @click="totalOptionSingleChoice--">mdi-delete</v-icon></v-btn>
+										          <v-text-field :label="'Option'+i" :value="option" @change="changeValueSingleChoice($event, i)"></v-text-field>
+										          <v-btn class="mb-2"><v-icon @click="deleteOptionSingleChoice(i)">mdi-delete</v-icon></v-btn>
 										        </template>
 										      </v-radio>
 				            		</template>
@@ -712,17 +714,17 @@
 			            </template>
 			            <template v-if="data_type_question == 'Single Select'">
 			            	<v-col cols="3">
-			            		<v-btn large @click="totalOptionSingleSelect++">
+			            		<v-btn large @click="addOptionSingleSelect">
 									      <v-icon>mdi-plus</v-icon>
 									    </v-btn>
 			            	</v-col>
 			            	<v-col cols="12">
-				            	<v-radio-group v-model="radioYesNo">
-				            		<template v-for="i in totalOptionSingleSelect">
-											    <v-radio :value="i" :key="i">
+				            	<v-radio-group v-model="correctSingleSelect">
+				            		<template v-for="(option, i) in optionAnswerSingleSelect">
+											    <v-radio :value="option" :key="i">
 										        <template v-slot:label>
-										          <v-text-field :label="'Option' + i"></v-text-field>
-										          <v-btn class="mb-2" @click="totalOptionSingleSelect--"><v-icon>mdi-delete</v-icon></v-btn>
+										          <v-text-field :label="'Option' + i" :value="option" @change="changeValueSingleSelect($event, i)"></v-text-field>
+										          <v-btn class="mb-2" @click="deleteOptionSingleSelect(i)"><v-icon>mdi-delete</v-icon></v-btn>
 										        </template>
 										      </v-radio>
 				            		</template>
@@ -731,18 +733,19 @@
 			            </template>
 			            <template v-if="data_type_question == 'Multiple Choice'">
 			            	<v-col cols="3">
-			            		<v-btn large @click="totalOptionMultipleChoice++">
+			            		<v-btn large @click="addOptionMultipleChoice">
 									      <v-icon>mdi-plus</v-icon>
 									    </v-btn>
 			            	</v-col>
 			            	<v-col cols="12">
-			            		<template v-for="i in totalOptionMultipleChoice">
+			            		<template v-for="(option, i) in optionAnswerMultipleChoice">
 				            		<v-row align="center" :key="i">
 						            	<v-checkbox
+						            		v-model="option.checked"
 						            		hide-details
 									        ></v-checkbox>
-									        <v-text-field :label="'Option' +i"></v-text-field>
-									        <v-btn class="mb-2" @click="totalOptionMultipleChoice--"><v-icon>mdi-delete</v-icon></v-btn>
+									        <v-text-field :label="'Option' +i" v-model="option.value"></v-text-field>
+									        <v-btn class="mb-2" @click="deleteOptionMultipleChoice(i)"><v-icon>mdi-delete</v-icon></v-btn>
 								        </v-row>
 							      	</template>
 									  </v-col>
@@ -783,11 +786,14 @@ import KTUtil from "@/assets/js/components/util";
 import KTWizard from "@/assets/js/components/wizard";
 import Swal from "sweetalert2";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import TypeQuestion from "./TypeQuestion.vue";
 
 export default {
 
   name: 'BuilderContent',
-
+	components: {
+		TypeQuestion
+	},
   data () {
 
     return {
@@ -810,9 +816,16 @@ export default {
     	inputTitleQuestion: '',
     	inputDesQuestion: '',
     	radioTrueFalse: null,
+    	correctYesNo: null,
+    	correctTrueFalse: null,
     	radioYesNo: null,
-    	totalOptionSingleChoice: 2,
-    	totalOptionSingleSelect: 2,
+    	correctSingleChoice: null,
+    	optionAnswerSingleChoice: ['Option 1', 'Option 2'],
+    	correctSingleSelect: null,
+    	optionAnswerSingleSelect: ['Option 1', 'Option 2'],
+
+    	optionAnswerMultipleChoice: [{ value:'Option 1', checked: false}, { value:'Option 2', checked: false}],
+
     	totalOptionMultipleChoice: 2,
     	tabSkill: 0,
     	tabSection: 0,
@@ -847,19 +860,19 @@ export default {
 	      	  		{
 	      	  			title: 'Exercises Title1',
 	      	  			description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
-	      	  			question_type: 'Short answer',
-	      	  			// questions: [
-	      	  			// 	{
-	      	  			// 		title: '',
-	      	  			// 		description: '',
-	      	  			// 		answers:[ 
-	      	  			// 		  {
-	      	  			// 				type: '',
-	      	  			// 				content: '',
-	      	  			// 			}
-	      	  			// 		]
-	      	  			// 	}
-	      	  			// ],
+	      	  			question_type: 'Multiple Choice',
+	      	  			questions: [
+	      	  				{
+	      	  					title: 'Title Description1',
+	      	  					description: 'Desription Question1',
+	      	  					answers:[ 
+	      	  					  {
+	      	  							option: null,
+	      	  							correct: true,
+	      	  						}
+	      	  					]
+	      	  				}
+	      	  			],
 	      	  		}
       	  		
       	  		],
@@ -1035,6 +1048,8 @@ export default {
   		this.indexSection 	= indexSection;
   		this.indexExercise 	= indexExercise;
   		this.data_type_question = this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].question_type;
+  		this.inputTitleQuestion = null;
+			this.inputDesQuestion = null;
   		this.dialogQuestion = true;
   	},
   	btnAddQuestion() {
@@ -1046,11 +1061,77 @@ export default {
   		if(dataCheck == undefined || dataCheck == null) {
   			this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].questions = [];
   		}
-  		this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].questions.push(data);
-			this.inputTitleQuestion = null;
-			this.inputDesQuestion = null;
+  		let indexRowQuestion = this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].questions.push(data) -1;
+
+			this.actionAddAnswer(indexRowQuestion, this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].question_type);
   		this.dialogQuestion = false;
-  	}
+  	},
+  	actionAddAnswer(indexRowQuestion, question_type) {
+  		let optionAnswer, correctAnswer;
+  		if (question_type == 'True/False/Not Given') {
+  			optionAnswer = ['True', 'False','Not Given'];
+  			correctAnswer = this.correctTrueFalse;
+  		}
+  		else if (question_type == 'Yes/No/Not Given') {
+  			optionAnswer = ['Yes', 'No','Not Given'];
+  			correctAnswer = this.correctYesNo;
+  		}
+  		else if (question_type == 'Single Choice') {
+  			optionAnswer = this.optionAnswerSingleChoice;
+  			correctAnswer = this.correctSingleChoice;
+  		}
+  		else if (question_type == 'Single Select') {
+  			optionAnswer = this.optionAnswerSingleSelect;
+  			correctAnswer = this.correctSingleSelect;
+  		}
+  		else if (question_type == 'Multiple Choice') {
+  			optionAnswer = this.optionAnswerMultipleChoice;
+  			correctAnswer = null;
+  		}
+
+  		let dataAnswer = {
+				option: optionAnswer,
+				correct: correctAnswer,
+			}
+			let dataCheck = this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].questions[indexRowQuestion].answers;
+  		if(dataCheck == undefined || dataCheck == null) {
+  			this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].questions[indexRowQuestion].answers = [];
+  		}
+  		this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].questions[indexRowQuestion].answers.push(dataAnswer);
+  	},
+  	changeValueSingleChoice(event, i) {
+  		this.optionAnswerSingleChoice.splice(i, 1, event);
+  	},
+  	addOptionSingleChoice() {
+  		let index = this.optionAnswerSingleChoice.length +1;
+  		let data = 'Option ' + index;
+			this.optionAnswerSingleChoice.push(data);
+  	},
+  	deleteOptionSingleChoice(i) {
+  		this.optionAnswerSingleChoice.splice(i, 1);
+  	},
+  	changeValueSingleSelect(event, i) {
+  		this.optionAnswerSingleSelect.splice(i, 1, event);
+  	},
+  	addOptionSingleSelect() {
+  		let index = this.optionAnswerSingleSelect.length +1;
+  		let data = 'Option ' + index;
+			this.optionAnswerSingleSelect.push(data);
+  	},
+  	deleteOptionSingleSelect(i) {
+  		this.optionAnswerSingleSelect.splice(i, 1);
+  	},
+  	addOptionMultipleChoice() {
+  		let index = this.optionAnswerMultipleChoice.length +1;
+  		let data = {
+  			value: 'Option ' + index,
+  			checked: false, 
+  		}
+			this.optionAnswerMultipleChoice.push(data);
+  	},
+  	deleteOptionMultipleChoice(i){
+  		this.optionAnswerMultipleChoice.splice(i, 1);
+  	},
   }
 }
 </script>
