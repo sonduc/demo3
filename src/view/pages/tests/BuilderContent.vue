@@ -439,11 +439,8 @@
 															    		<v-icon right>mdi-file-document-edit-outline</v-icon>
 															    	</h3>
 													          <div class="mt-4">
-																      <v-btn class="ma-2 btn-add-file" depressed outlined large>
-																	      <v-icon left>mdi-file-image</v-icon> Add Media
-																	    </v-btn>
-																	    <v-btn class="ma-2 ml-2 btn-add-file" depressed outlined large>
-																	      <v-icon left>mdi-file-image</v-icon> Add Post
+																      <v-btn @click="dialogElement = true" class="ma-2 btn-add-file" depressed outlined large>
+																	      <v-icon left >mdi-file-image</v-icon> Add Element
 																	    </v-btn>
 																  	</div>
 																  	<div class="mt-4">
@@ -461,9 +458,8 @@
 																			    </v-btn>
 																			    <template v-for="(question, iQues) in exercise.questions">
 																				    <div v-if="exercise.questions.length" class="ml-12 mt-4" :key="iQues">
-																				    	<!-- <h4>{{question.title}}</h4>
-																							<p class="text-description">{{question.description}}</p> -->
-																							
+																				    	<h4>{{question.title}}</h4>
+																							<p class="text-description">{{question.description}}</p> 
 																						  <TypeQuestion :question="question" :question_type="exercise.question_type" />
 																				    </div>
 																			  	</template>
@@ -520,6 +516,50 @@
 	    </div>
 	    <!--end: Wizard-->
 			
+			<v-row>
+				<v-dialog v-model="dialogElement" persistent max-width="600px">
+			    <v-card>
+			      <v-card-title>
+			        <span class="headline">Add Element</span>
+			      </v-card-title>
+			      <v-card-text>
+			        <v-container>
+			        	<v-col cols="12">
+				          <v-radio-group v-model="type_element" :mandatory="false" row>
+							      <v-radio label="Audio" value="Audio"></v-radio>
+							      <v-radio label="Video" value="Video"></v-radio>
+							      <v-radio label="Image" value="Image"></v-radio>
+							      <v-radio label="PDF_file" value="PDF_file"></v-radio>
+							      <v-radio label="Post" value="Post"></v-radio>
+						    	</v-radio-group>
+								</v-col>
+								<v-col>
+									<v-file-input small-chips label="Upload file" @change="onImageChange"></v-file-input> 
+									<vuetify-audio v-if="type_element =='Audio'" :file="data_element" color="success"></vuetify-audio>
+									<v-img v-if="type_element =='Image'" :src="data_element"></v-img>
+
+									<Media
+							      :kind="'video'"
+							      :isMuted="(false)"
+							      src="https://www.w3schools.com/html/mov_bbb.mp4"
+							      :autoplay="true"
+							      :controls="true"
+							      :ref="'video_player'"
+							      width="auto"
+							    ></Media>
+
+								</v-col>
+			        </v-container>
+			      </v-card-text>
+			      <v-card-actions>
+			        <v-spacer></v-spacer>
+			        <v-btn color="blue darken-1" text @click="dialogElement = false">Close</v-btn>
+			        <v-btn color="blue darken-1" text >Add</v-btn>
+			      </v-card-actions>
+			    </v-card>
+			  </v-dialog>
+			</v-row>
+
 			<v-row justify="center">
 			  <v-dialog v-model="dialogSkill" persistent max-width="600px">
 			    <v-card>
@@ -786,21 +826,25 @@ import KTUtil from "@/assets/js/components/util";
 import KTWizard from "@/assets/js/components/wizard";
 import Swal from "sweetalert2";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-import TypeQuestion from "./TypeQuestion.vue";
 
 export default {
 
   name: 'BuilderContent',
 	components: {
-		TypeQuestion
+		TypeQuestion: () => import('./TypeQuestion.vue'),
+		VuetifyAudio: () => import('vuetify-audio'),
+		Media: () => import('@dongido/vue-viaudio'),
+
 	},
   data () {
 
     return {
+    	type_element: null,
+    	data_element: '',
     	editor: ClassicEditor,
     	editorData:'',
-
     	data_type_question: 'None',
+    	dialogElement: true,
     	dialogSkill: false,
     	dialogSection:false,
     	dialogExercise: false,
@@ -823,10 +867,8 @@ export default {
     	optionAnswerSingleChoice: ['Option 1', 'Option 2'],
     	correctSingleSelect: null,
     	optionAnswerSingleSelect: ['Option 1', 'Option 2'],
-
     	optionAnswerMultipleChoice: [{ value:'Option 1', checked: false}, { value:'Option 2', checked: false}],
 
-    	totalOptionMultipleChoice: 2,
     	tabSkill: 0,
     	tabSection: 0,
     	type_form_section: null,
@@ -991,8 +1033,15 @@ export default {
   		let data = this.skills[indexSkill].sections[indexSection];
   		this.inputTitleSection = data.title;
 			this.inputDesSection = data.description;
-
   	},
+    onImageChange(file) {
+  		let reader = new FileReader();
+      let vm = this;
+      reader.onload = (e) => {
+        vm.data_element = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    },
   	btnEditSection() {
   		let data = {
   			title: this.inputTitleSection,
