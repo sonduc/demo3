@@ -439,9 +439,29 @@
 															    		<v-icon right>mdi-file-document-edit-outline</v-icon>
 															    	</h3>
 													          <div class="mt-4">
-																      <v-btn @click="dialogElement = true" class="ma-2 btn-add-file" depressed outlined large>
+																      <v-btn @click="openDialogElement(index, i)" class="ma-2 btn-add-file" depressed outlined large>
 																	      <v-icon left >mdi-file-image</v-icon> Add Element
 																	    </v-btn>
+																  	</div>
+																  	<div class="mt-4" style="width: max-content;" v-if="section.element_type != null && section.element_data != null">
+																  		<vuetify-audio v-if="section.element_type =='Audio'" :file="section.element_data" color="success"></vuetify-audio>
+																			<v-img v-if="section.element_type =='Image'" :src="section.element_data"></v-img>
+																			<div v-if="section.element_type =='Video'" class="videoUpload">
+																				<Media
+																		      :kind="'video'"
+																		      :isMuted="(false)"
+																		      :src="section.element_data"
+																		      :autoplay="true"
+																		      :controls="true"
+																		      :ref="'video_player'"
+																		      :style="{width: '100%'}"
+																		    ></Media>
+																			</div>
+																			<div class="videoUpload" v-if="section.element_type =='Embed_yt'">
+																				<youtube player-width="100%" :video-id="videoId(section.element_data)"></youtube>
+																			</div>
+																			<pdf v-if="section.element_type =='PDF_file'" :src="section.element_data"></pdf>
+																			<ckeditor v-if="section.element_type =='Post'" :editor="editor" v-model="section.element_data"></ckeditor>
 																  	</div>
 																  	<div class="mt-4">
 																  		<v-btn @click="openDialogExercise(index, i)" class="ma-2 btn-add-exer" x-small large>
@@ -453,6 +473,27 @@
 																		    		<v-icon right>mdi-file-document-edit-outline</v-icon>
 																		    	</h4>
 																					<p class="text-description">{{exercise.description}}</p>
+																					<div style="width: max-content;" v-if="exercise.element_type != null && exercise.element_data != null">
+																			  		<vuetify-audio v-if="exercise.element_type =='Audio'" :file="exercise.element_data" color="success"></vuetify-audio>
+																						<v-img v-if="exercise.element_type =='Image'" :src="exercise.element_data"></v-img>
+																						<div v-if="exercise.element_type =='Video'" class="videoUpload">
+																							<Media
+																					      :kind="'video'"
+																					      :isMuted="(false)"
+																					      :src="exercise.element_data"
+																					      :autoplay="true"
+																					      :controls="true"
+																					      :ref="'video_player'"
+																					      :style="{width: '100%'}"
+																					    ></Media>
+																						</div>
+																						<div class="videoUpload" v-if="exercise.element_type =='Embed_yt'">
+																							<youtube player-width="100%" :video-id="videoId(exercise.element_data)"></youtube>
+																						</div>
+																						<pdf v-if="exercise.element_type =='PDF_file'" :src="exercise.element_data"></pdf>
+																						<ckeditor v-if="exercise.element_type =='Post'" :editor="editor" v-model="exercise.element_data"></ckeditor>
+																			  	</div>
+
 																					<v-btn @click="openDialogQuestion(index, i, iExer)" class="ma-2 btn-add-exer" x-small large>
 																			      <v-icon dark>mdi-plus</v-icon>Add Question
 																			    </v-btn>
@@ -517,44 +558,56 @@
 	    <!--end: Wizard-->
 			
 			<v-row>
-				<v-dialog v-model="dialogElement" persistent max-width="600px">
+				<v-dialog v-model="dialogElement" persistent max-width="800px">
 			    <v-card>
 			      <v-card-title>
 			        <span class="headline">Add Element</span>
 			      </v-card-title>
 			      <v-card-text>
 			        <v-container>
+								<v-col cols="12">
+									<v-switch v-model="id_pinned" :label="`Pin: ${id_pinned.toString()}`"></v-switch>
+								</v-col>
 			        	<v-col cols="12">
 				          <v-radio-group v-model="type_element" :mandatory="false" row>
 							      <v-radio label="Audio" value="Audio"></v-radio>
 							      <v-radio label="Video" value="Video"></v-radio>
+							      <v-radio label="Embed Youtube" value="Embed_yt"></v-radio>
 							      <v-radio label="Image" value="Image"></v-radio>
 							      <v-radio label="PDF_file" value="PDF_file"></v-radio>
 							      <v-radio label="Post" value="Post"></v-radio>
 						    	</v-radio-group>
 								</v-col>
-								<v-col>
-									<v-file-input small-chips label="Upload file" @change="onImageChange"></v-file-input> 
-									<vuetify-audio v-if="type_element =='Audio'" :file="data_element" color="success"></vuetify-audio>
-									<v-img v-if="type_element =='Image'" :src="data_element"></v-img>
-
-									<Media
-							      :kind="'video'"
-							      :isMuted="(false)"
-							      src="https://www.w3schools.com/html/mov_bbb.mp4"
-							      :autoplay="true"
-							      :controls="true"
-							      :ref="'video_player'"
-							      width="auto"
-							    ></Media>
-
+								<v-col cols="12">
+									<v-file-input small-chips label="Upload file" @change="onElementChange" v-if="type_element != null && type_element != 'Embed_yt' && type_element != 'Post'"></v-file-input> 
+									<v-text-field label="Link YouTube" v-if="type_element != null && type_element == 'Embed_yt' && type_element != 'Post'" v-model="element_data" required></v-text-field>
+									<div>
+										<vuetify-audio v-if="type_element =='Audio'" :file="element_data" color="success"></vuetify-audio>
+										<v-img v-if="type_element =='Image'" :src="element_data"></v-img>
+										<div v-if="type_element =='Video'" class="videoUpload">
+											<Media
+									      :kind="'video'"
+									      :isMuted="(false)"
+									      :src="element_data"
+									      :autoplay="true"
+									      :controls="true"
+									      :ref="'video_player'"
+									      :style="{width: '100%'}"
+									    ></Media>
+										</div>
+										<div class="videoUpload" v-if="type_element =='Embed_yt'">
+											<youtube player-width="100%" :video-id="videoId(element_data)"></youtube>
+										</div>
+										<pdf v-if="type_element =='PDF_file'" :src="element_data"></pdf>
+										<ckeditor v-if="type_element =='Post'" :editor="editor" v-model="element_data"></ckeditor>
+									</div>
 								</v-col>
 			        </v-container>
 			      </v-card-text>
 			      <v-card-actions>
 			        <v-spacer></v-spacer>
 			        <v-btn color="blue darken-1" text @click="dialogElement = false">Close</v-btn>
-			        <v-btn color="blue darken-1" text >Add</v-btn>
+			        <v-btn color="blue darken-1" text @click="btnAddElement">Add</v-btn>
 			      </v-card-actions>
 			    </v-card>
 			  </v-dialog>
@@ -625,7 +678,7 @@
 			</v-row>
 
 			<v-row justify="center">
-			  <v-dialog v-model="dialogExercise" persistent max-width="600px">
+			  <v-dialog v-model="dialogExercise" persistent max-width="800px">
 			    <v-card>
 			      <v-card-title>
 			        <span v-if="type_form_exercise == 'add'" class="headline">Add Exercise</span>
@@ -652,6 +705,43 @@
 			                v-model="data_type_question"
 			              ></v-select>
 			            </v-col>
+			            <v-col cols="12">
+										<v-switch v-model="toggle_element" :label="`Add Element: ${toggle_element.toString()}`"></v-switch>
+									</v-col>
+			            <v-col cols="12" v-if="toggle_element">
+					          <v-radio-group v-model="type_element_exercise" :mandatory="false" row>
+								      <v-radio label="Audio" value="Audio"></v-radio>
+								      <v-radio label="Video" value="Video"></v-radio>
+								      <v-radio label="Embed Youtube" value="Embed_yt"></v-radio>
+								      <v-radio label="Image" value="Image"></v-radio>
+								      <v-radio label="PDF_file" value="PDF_file"></v-radio>
+								      <v-radio label="Post" value="Post"></v-radio>
+							    	</v-radio-group>
+									</v-col>
+									<v-col cols="12" v-if="toggle_element">
+										<v-file-input small-chips label="Upload file" @change="onElementExerciseChange" v-if="type_element_exercise != null && type_element_exercise != 'Embed_yt' && type_element_exercise != 'Post'"></v-file-input> 
+										<v-text-field label="Link YouTube" v-if="type_element_exercise != null && type_element_exercise == 'Embed_yt' && type_element_exercise != 'Post'" v-model="element_data_exercise" required></v-text-field>
+										<div>
+											<vuetify-audio v-if="type_element_exercise =='Audio'" :file="element_data_exercise" color="success"></vuetify-audio>
+											<v-img v-if="type_element_exercise =='Image'" :src="element_data_exercise"></v-img>
+											<div v-if="type_element_exercise =='Video'" class="videoUpload">
+												<Media
+										      :kind="'video'"
+										      :isMuted="(false)"
+										      :src="element_data_exercise"
+										      :autoplay="true"
+										      :controls="true"
+										      :ref="'video_player'"
+										      :style="{width: '100%'}"
+										    ></Media>
+											</div>
+											<div class="videoUpload" v-if="type_element_exercise =='Embed_yt'">
+												<youtube player-width="100%" :video-id="videoId(element_data_exercise)"></youtube>
+											</div>
+											<pdf v-if="type_element_exercise =='PDF_file'" :src="element_data_exercise"></pdf>
+											<ckeditor v-if="type_element_exercise =='Post'" :editor="editor" v-model="element_data_exercise"></ckeditor>
+										</div>
+									</v-col>
 			          </v-row>
 			        </v-container>
 			      </v-card-text>
@@ -708,12 +798,20 @@
 					            ></v-text-field>
 				            </v-col>
 				            <v-col cols="12">
-				            	<!-- <v-text-field
-					              label="Correct answer"
-					              required
-					            ></v-text-field> -->
-					            <ckeditor :editor="editor" v-model="editorData"></ckeditor>
+				            	<v-textarea
+							          filled
+							          label=""
+							          v-model="correctShortAnswer"
+							          ref="correctShortAnswer"
+							        ></v-textarea>
+					            <!-- <ckeditor :editor="editor" v-model="editorData"></ckeditor> -->
 				            </v-col>
+				            <v-col>
+				            	<v-btn class="btn-add-file" depressed outlined large @click="addShortAnswer">
+									      <v-icon left >mdi-plus</v-icon> Add Answer
+									    </v-btn>
+				            </v-col>
+				            
 			            </template>
 			            <template v-if="data_type_question == 'True/False/Not Given'">
 			            	<v-col cols="12">
@@ -826,6 +924,7 @@ import KTUtil from "@/assets/js/components/util";
 import KTWizard from "@/assets/js/components/wizard";
 import Swal from "sweetalert2";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { getIdFromURL } from 'vue-youtube-embed'
 
 export default {
 
@@ -834,20 +933,24 @@ export default {
 		TypeQuestion: () => import('./TypeQuestion.vue'),
 		VuetifyAudio: () => import('vuetify-audio'),
 		Media: () => import('@dongido/vue-viaudio'),
-
+		pdf: () => import('vue-pdf'),
 	},
   data () {
 
     return {
+    	id_pinned: false,
     	type_element: null,
-    	data_element: '',
+    	element_data: null,
+    	type_element_exercise: null,
+    	element_data_exercise: null,
     	editor: ClassicEditor,
     	editorData:'',
     	data_type_question: 'None',
-    	dialogElement: true,
+    	dialogElement: false,
     	dialogSkill: false,
     	dialogSection:false,
     	dialogExercise: false,
+    	toggle_element: false,
     	dialogQuestion: false,
     	indexSkill: null,
     	indexSection: null,
@@ -860,6 +963,7 @@ export default {
     	inputTitleQuestion: '',
     	inputDesQuestion: '',
     	radioTrueFalse: null,
+    	correctShortAnswer: null,
     	correctYesNo: null,
     	correctTrueFalse: null,
     	radioYesNo: null,
@@ -888,40 +992,45 @@ export default {
 	    optionSkill:['Speaking','Reading','Writing','Listing','Vocabulary','Grammar'],
       typeQuestionName: ['None' ,'Short answer', 'True/False/Not Given', 'Yes/No/Not Given', 'Single Choice', 'Single Select', 'Multiple Choice', 'Paragraph', 'File Upload'],
       typeQUestionValue: [0 , 1, 21, 22, 2, 3, 4, 5, 6],
-      //skills: [],
-      skills:[
-      	{ 
-      		id: 1,
-      		name: 'Speaking',
-      	  sections:[
-      	  	{
-      	  		title:'Section1',
-      	  		description: 'Description Section1',
-      	  		file: '',
-      	  		exercises: [
-	      	  		{
-	      	  			title: 'Exercises Title1',
-	      	  			description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
-	      	  			question_type: 'Multiple Choice',
-	      	  			questions: [
-	      	  				{
-	      	  					title: 'Title Description1',
-	      	  					description: 'Desription Question1',
-	      	  					answers:[ 
-	      	  					  {
-	      	  							option: null,
-	      	  							correct: true,
-	      	  						}
-	      	  					]
-	      	  				}
-	      	  			],
-	      	  		}
+      skills: [],
+      // skills:[
+      // 	{ 
+      // 		id: 1,
+      // 		name: 'Speaking',
+      // 	  sections:[
+      // 	  	{
+      // 	  		title:'Section1',
+      // 	  		description: 'Description Section1',
+      // 	  		element_type: null,
+      // 	  		element_data: null,
+      // 	  		is_pinned: false,
+      // 	  		exercises: [
+	     //  	  		{
+	     //  	  			title: 'Exercises Title1',
+	     //  	  			description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
+	     //  	  			question_type: 'Short answer',
+	     //  	  			element_type: null,
+    	 //  					element_data: null,
+    	 //  					is_element: false,
+	     //  	  			questions: [
+	     //  	  				{
+	     //  	  					title: 'Title Description1',
+	     //  	  					description: 'Desription Question1',
+	     //  	  					answers:[ 
+	     //  	  					  {
+	     //  	  							option: null,
+	     //  	  							correct: true,
+	     //  	  						}
+	     //  	  					]
+	     //  	  				}
+	     //  	  			],
+	     //  	  		}
       	  		
-      	  		],
-      	  	},
-      	  ] 
-      	},
-      ],
+      // 	  		],
+      // 	  	},
+      // 	  ] 
+      // 	},
+      // ],
     }
   },
   computed: {},
@@ -957,9 +1066,19 @@ export default {
         setTimeout(() => (this.isUpdating = false), 3000)
       }
     },
+    type_element() {
+    	this.element_data = null;
+    },
+    type_element_exercise() {
+    	this.element_data_exercise = null;
+    },
   },
 
   methods: {
+  	videoId(element_data) {
+  		if(element_data) return getIdFromURL(element_data);
+ 		  else return '';
+  	},
     submit: function(e) {
       e.preventDefault();
       Swal.fire({
@@ -969,7 +1088,6 @@ export default {
         confirmButtonClass: "btn btn-secondary"
       });
     },
-
     remove (item) {
       const index = this.friends.indexOf(item.name)
       if (index >= 0) this.friends.splice(index, 1)
@@ -1004,7 +1122,33 @@ export default {
 		  		this.optionSkill.push(data);
 	  		}
 			})
-  	},	
+  	},
+  	onElementChange(file) {
+      let vm = this;
+    	if(file == undefined){ 
+    		vm.element_data = null;
+    		return
+    	}
+  		let reader = new FileReader();
+      reader.onload = (e) => {
+        vm.element_data = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    },
+    openDialogElement(indexSkill = null, indexSection = null){
+    	this.indexSkill 		= indexSkill;
+  		this.indexSection 	= indexSection;
+    	this.dialogElement = true;
+    },
+    btnAddElement() {
+    	this.skills[this.indexSkill].sections[this.indexSection].element_type = this.type_element;
+    	this.skills[this.indexSkill].sections[this.indexSection].element_data = this.element_data;
+    	this.skills[this.indexSkill].sections[this.indexSection].id_pinned = this.id_pinned;
+    	this.type_element = null,
+    	this.element_data = null,
+    	this.element_data = false,
+    	this.dialogElement = false;
+    },	
   	openDialogSection(index) {
   		this.type_form_section = 'add';
   		this.inputTitleSection = null;
@@ -1034,14 +1178,6 @@ export default {
   		this.inputTitleSection = data.title;
 			this.inputDesSection = data.description;
   	},
-    onImageChange(file) {
-  		let reader = new FileReader();
-      let vm = this;
-      reader.onload = (e) => {
-        vm.data_element = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    },
   	btnEditSection() {
   		let data = {
   			title: this.inputTitleSection,
@@ -1055,15 +1191,33 @@ export default {
   		this.inputTitleExercise = null;
 			this.inputDesExercise = null;
 			this.data_type_question = null;
+			this.type_element_exercise = null;
+			this.element_data_exercise = null;
+			this.toggle_element = false;
   		this.indexSkill 	= indexSkill;
   		this.indexSection = indexSection;
   		this.dialogExercise = true;
+  	},
+  	onElementExerciseChange(file) {
+  		let vm = this;
+    	if(file == undefined){ 
+    		vm.element_data_exercise = null;
+    		return
+    	}
+  		let reader = new FileReader();
+      reader.onload = (e) => {
+        vm.element_data_exercise = e.target.result;
+      };
+      reader.readAsDataURL(file);
   	},
   	btnAddExercise() {
   		let data = {
   			title: this.inputTitleExercise,
   			description: this.inputDesExercise,
   			question_type: this.data_type_question,
+  			element_type: this.type_element_exercise,
+  			element_data: this.element_data_exercise,
+  			is_element: this.toggle_element,
   		}
   		let dataCheck = this.skills[this.indexSkill].sections[this.indexSection].exercises;
   		if(dataCheck == undefined || dataCheck == null) {
@@ -1082,12 +1236,17 @@ export default {
   		this.inputTitleExercise = data.title;
 			this.inputDesExercise = data.description;
 			this.data_type_question = data.question_type;
+			this.type_element_exercise = data.element_type;
+			this.element_data_exercise = data.element_data;
+			this.toggle_element = data.is_element;
   	},
   	btnEditExercise() {
   		let data = {
   			title: this.inputTitleExercise,
   			description: this.inputDesExercise,
   			question_type: this.data_type_question,
+  			element_type: this.type_element_exercise,
+  			element_data: this.element_data_exercise,
   		}
   		this.skills[this.indexSkill].sections[this.indexSection].exercises.splice(this.indexExercise, 1, data);
   		this.dialogExercise = false;
@@ -1147,6 +1306,35 @@ export default {
   			this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].questions[indexRowQuestion].answers = [];
   		}
   		this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].questions[indexRowQuestion].answers.push(dataAnswer);
+  	},
+  	addShortAnswer() {
+  		// let insertFirst = '{{';
+  		// let insertLast = '}}';
+  		// let self = this;
+		  // let tArea = this.$refs.correctShortAnswer;
+
+		  // // filter:
+		  // if (0 == insert) {
+		  //   return;
+		  // }
+		  // if (0 == cursorPos) {
+		  //   return;
+		  // }
+
+		  // // get cursor's position:
+		  // let startPos = tArea.selectionStart;
+		  // let endPos = tArea.selectionEnd;
+		  // let cursorPos = startPos;
+		  // let tmpStr = tArea.value;
+		  // console.log(cursorPos, endPos);
+		  // // insert:
+		  // self.correctShortAnswer = tmpStr.substring(0, startPos) + insertFirst + tmpStr.substring(endPos, tmpStr.length) + insertLast;
+
+		  // move cursor:
+		  // setTimeout(() => {
+		  //   cursorPos += insertFirst.length;
+		  //   tArea.selectionStart = tArea.selectionEnd = cursorPos;
+		  // }, 10);
   	},
   	changeValueSingleChoice(event, i) {
   		this.optionAnswerSingleChoice.splice(i, 1, event);
@@ -1214,5 +1402,9 @@ export default {
 .text-description{
 	font-size: large;
   max-width: 600px;
+}
+.videoUpload{
+	width: 100%;
+	text-align: center;
 }
 </style>

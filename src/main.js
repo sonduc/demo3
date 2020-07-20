@@ -9,6 +9,7 @@ import { RESET_LAYOUT_CONFIG } from "@/core/services/store/config.module";
 
 import "vuetify/dist/vuetify.min.css";
 import ckeditor from "@ckeditor/ckeditor5-vue";
+import VueYouTubeEmbed from 'vue-youtube-embed'
 
 Vue.config.productionTip = false;
 
@@ -52,6 +53,7 @@ router.beforeEach((to, from, next) => {
 });
 
 Vue.use(ckeditor);
+Vue.use(VueYouTubeEmbed);
 
 new Vue({
   router,
