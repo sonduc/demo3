@@ -443,9 +443,9 @@
 																	      <v-icon left >mdi-file-image</v-icon> Add Element
 																	    </v-btn>
 																  	</div>
-																  	<div class="mt-4" style="width: max-content;" v-if="section.element_type != null && section.element_data != null">
+																  	<div class="mt-4" v-if="section.element_type != null && section.element_data != null">
 																  		<vuetify-audio v-if="section.element_type =='Audio'" :file="section.element_data" color="success"></vuetify-audio>
-																			<v-img v-if="section.element_type =='Image'" :src="section.element_data"></v-img>
+																			<v-img style="max-width: 60%; max-height: 450px" v-if="section.element_type =='Image'" :src="section.element_data"></v-img>
 																			<div v-if="section.element_type =='Video'" class="videoUpload">
 																				<Media
 																		      :kind="'video'"
@@ -454,14 +454,13 @@
 																		      :autoplay="true"
 																		      :controls="true"
 																		      :ref="'video_player'"
-																		      :style="{width: '100%'}"
 																		    ></Media>
 																			</div>
 																			<div class="videoUpload" v-if="section.element_type =='Embed_yt'">
 																				<youtube player-width="100%" :video-id="videoId(section.element_data)"></youtube>
 																			</div>
-																			<pdf v-if="section.element_type =='PDF_file'" :src="section.element_data"></pdf>
-																			<ckeditor v-if="section.element_type =='Post'" :editor="editor" v-model="section.element_data"></ckeditor>
+																			<pdf class="css-element-pdf" v-if="section.element_type =='PDF_file'" :src="section.element_data"></pdf>
+																			<ckeditor style="max-height: 450px" v-if="section.element_type =='Post'" :editor="editor" v-model="section.element_data"></ckeditor>
 																  	</div>
 																  	<div class="mt-4">
 																  		<v-btn @click="openDialogExercise(index, i)" class="ma-2 btn-add-exer" x-small large>
@@ -801,17 +800,16 @@
 				            	<v-textarea
 							          filled
 							          label=""
-							          v-model="correctShortAnswer"
+							          v-model.trim="correctShortAnswer"
 							          ref="correctShortAnswer"
 							        ></v-textarea>
 					            <!-- <ckeditor :editor="editor" v-model="editorData"></ckeditor> -->
 				            </v-col>
 				            <v-col>
-				            	<v-btn class="btn-add-file" depressed outlined large @click="addShortAnswer">
+				            	<v-btn class="btn-add-file" depressed outlined large @click="openDialogShortAnswer">
 									      <v-icon left >mdi-plus</v-icon> Add Answer
 									    </v-btn>
 				            </v-col>
-				            
 			            </template>
 			            <template v-if="data_type_question == 'True/False/Not Given'">
 			            	<v-col cols="12">
@@ -909,6 +907,45 @@
 			    </v-card>
 			  </v-dialog>
 			</v-row>
+				
+			<v-row justify="center">
+			  <v-dialog v-model="dialogShortAnswer" persistent max-width="600px">
+			    <v-card>
+			      <v-card-title>
+			        <span class="headline">Add Short Answer</span>
+			      </v-card-title>
+			      <v-card-text>
+			        <v-container>
+			          <v-row>
+			          	<v-col cols="3">
+		            		<v-btn large @click="addOptionShortAnswer">
+								      <v-icon>mdi-plus</v-icon>
+								    </v-btn>
+		            	</v-col>
+			            <v-col cols="12">
+			            	<v-radio-group v-model="correctOptShortAn">
+			            		<template v-for="(option, i) in optionShortAnswer">
+										    <v-radio :value="option" :key="i">
+									        <template v-slot:label>
+									          <v-text-field :label="'Option'+i" :value="option" @change="changeValueShortAnswer($event, i)"></v-text-field>
+									          <v-btn class="mb-2"><v-icon @click="deleteOptionShortAnswer(i)">mdi-delete</v-icon></v-btn>
+									        </template>
+									      </v-radio>
+			            		</template>
+									  </v-radio-group>
+								  </v-col>
+			          </v-row>
+			        </v-container>
+			      </v-card-text>
+			      <v-card-actions>
+			        <v-spacer></v-spacer>
+			        <v-btn color="blue darken-1" text @click="dialogShortAnswer = false">Close</v-btn>
+			        <v-btn color="blue darken-1" text @click="btnAddShortAn">Add</v-btn>
+			      </v-card-actions>
+			    </v-card>
+			  </v-dialog>
+			</v-row>
+
 	  </div>
 	</v-app>
 </template>
@@ -924,7 +961,8 @@ import KTUtil from "@/assets/js/components/util";
 import KTWizard from "@/assets/js/components/wizard";
 import Swal from "sweetalert2";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-import { getIdFromURL } from 'vue-youtube-embed'
+import { getIdFromURL } from 'vue-youtube-embed';
+import ApiService from '@/core/services/api.service';
 
 export default {
 
@@ -952,6 +990,7 @@ export default {
     	dialogExercise: false,
     	toggle_element: false,
     	dialogQuestion: false,
+    	dialogShortAnswer:false,
     	indexSkill: null,
     	indexSection: null,
     	indexExercise: null,
@@ -972,6 +1011,8 @@ export default {
     	correctSingleSelect: null,
     	optionAnswerSingleSelect: ['Option 1', 'Option 2'],
     	optionAnswerMultipleChoice: [{ value:'Option 1', checked: false}, { value:'Option 2', checked: false}],
+    	correctOptShortAn: null,
+    	optionShortAnswer: ['Option 1', 'Option 2'],
 
     	tabSkill: 0,
     	tabSection: 0,
@@ -992,45 +1033,46 @@ export default {
 	    optionSkill:['Speaking','Reading','Writing','Listing','Vocabulary','Grammar'],
       typeQuestionName: ['None' ,'Short answer', 'True/False/Not Given', 'Yes/No/Not Given', 'Single Choice', 'Single Select', 'Multiple Choice', 'Paragraph', 'File Upload'],
       typeQUestionValue: [0 , 1, 21, 22, 2, 3, 4, 5, 6],
-      skills: [],
-      // skills:[
-      // 	{ 
-      // 		id: 1,
-      // 		name: 'Speaking',
-      // 	  sections:[
-      // 	  	{
-      // 	  		title:'Section1',
-      // 	  		description: 'Description Section1',
-      // 	  		element_type: null,
-      // 	  		element_data: null,
-      // 	  		is_pinned: false,
-      // 	  		exercises: [
-	     //  	  		{
-	     //  	  			title: 'Exercises Title1',
-	     //  	  			description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
-	     //  	  			question_type: 'Short answer',
-	     //  	  			element_type: null,
-    	 //  					element_data: null,
-    	 //  					is_element: false,
-	     //  	  			questions: [
-	     //  	  				{
-	     //  	  					title: 'Title Description1',
-	     //  	  					description: 'Desription Question1',
-	     //  	  					answers:[ 
-	     //  	  					  {
-	     //  	  							option: null,
-	     //  	  							correct: true,
-	     //  	  						}
-	     //  	  					]
-	     //  	  				}
-	     //  	  			],
-	     //  	  		}
+      //skills: [],
+      skills:[
+      	{ 
+      		id: 1,
+      		name: 'Speaking',
+      	  sections:[
+      	  	{
+      	  		title:'Section1',
+      	  		description: 'Description Section1',
+      	  		element_type: null,
+      	  		element_data: null,
+      	  		is_pinned: false,
+      	  		exercises: [
+	      	  		{
+	      	  			title: 'Exercises Title1',
+	      	  			description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
+	      	  			question_type: 'Short answer',
+	      	  			element_type: null,
+    	  					element_data: null,
+    	  					is_element: false,
+	      	  			questions: [
+	      	  				{
+	      	  					title: 'Title Description1',
+	      	  					description: 'Desription Question1',
+	      	  					body: null,
+	      	  					answers:[ 
+	      	  					  {
+	      	  							option: null,
+	      	  							correct: null,
+	      	  						}
+	      	  					]
+	      	  				}
+	      	  			],
+	      	  		}
       	  		
-      // 	  		],
-      // 	  	},
-      // 	  ] 
-      // 	},
-      // ],
+      	  		],
+      	  	},
+      	  ] 
+      	},
+      ],
     }
   },
   computed: {},
@@ -1079,13 +1121,15 @@ export default {
   		if(element_data) return getIdFromURL(element_data);
  		  else return '';
   	},
-    submit: function(e) {
-      e.preventDefault();
-      Swal.fire({
-        title: "",
-        text: "The application has been successfully submitted!",
-        icon: "success",
-        confirmButtonClass: "btn btn-secondary"
+    async submit() {
+    	await ApiService.post("tests/test/create-test").then(response => {
+    			console.log(response);
+	        Swal.fire({
+	        title: "",
+	        text: "The application has been successfully submitted!",
+	        icon: "success",
+	        confirmButtonClass: "btn btn-secondary"
+	      });
       });
     },
     remove (item) {
@@ -1276,9 +1320,14 @@ export default {
   	},
   	actionAddAnswer(indexRowQuestion, question_type) {
   		let optionAnswer, correctAnswer;
+
   		if (question_type == 'True/False/Not Given') {
   			optionAnswer = ['True', 'False','Not Given'];
   			correctAnswer = this.correctTrueFalse;
+  		}
+  		else if (question_type == 'Short answer') {
+  			optionAnswer = null;
+  			correctAnswer = this.correctShortAnswer;
   		}
   		else if (question_type == 'Yes/No/Not Given') {
   			optionAnswer = ['Yes', 'No','Not Given'];
@@ -1307,35 +1356,34 @@ export default {
   		}
   		this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].questions[indexRowQuestion].answers.push(dataAnswer);
   	},
-  	addShortAnswer() {
-  		// let insertFirst = '{{';
-  		// let insertLast = '}}';
-  		// let self = this;
-		  // let tArea = this.$refs.correctShortAnswer;
-
-		  // // filter:
-		  // if (0 == insert) {
-		  //   return;
-		  // }
-		  // if (0 == cursorPos) {
-		  //   return;
-		  // }
-
-		  // // get cursor's position:
-		  // let startPos = tArea.selectionStart;
-		  // let endPos = tArea.selectionEnd;
-		  // let cursorPos = startPos;
-		  // let tmpStr = tArea.value;
-		  // console.log(cursorPos, endPos);
-		  // // insert:
-		  // self.correctShortAnswer = tmpStr.substring(0, startPos) + insertFirst + tmpStr.substring(endPos, tmpStr.length) + insertLast;
-
-		  // move cursor:
-		  // setTimeout(() => {
-		  //   cursorPos += insertFirst.length;
-		  //   tArea.selectionStart = tArea.selectionEnd = cursorPos;
-		  // }, 10);
+  	openDialogShortAnswer() {
+  		this.optionShortAnswer = ['Option 1', 'Option 2'];
+  		this.dialogShortAnswer = true;
   	},
+  	btnAddShortAn() {
+  		let insertFirst = '{{';
+  		let insertLast = '}}';
+  		let self = this;
+		  let tArea = this.$refs.correctShortAnswer;
+			// get cursor's position:
+		  let startPos = tArea.selectionStart;
+		  //let endPos = tArea.selectionEnd;
+		  let cursorPos = startPos;
+		  let tmpStr = tArea.value;
+		  if (0 == cursorPos) {
+		    return;
+		  }
+		  // insert:
+		  //self.correctShortAnswer = tmpStr.substring(0, startPos)+ insertFirst + insertLast + tmpStr.substring(endPos, tmpStr.length);
+		  self.correctShortAnswer = tmpStr + ' ' +insertFirst + this.optionShortAnswer.join("/") + insertLast;
+		  //move cursor:
+		  setTimeout(() => {
+		    cursorPos += insertFirst.length;
+		    tArea.selectionStart = tArea.selectionEnd = cursorPos;
+		  }, 10);
+		  this.dialogShortAnswer = false;
+  	},
+
   	changeValueSingleChoice(event, i) {
   		this.optionAnswerSingleChoice.splice(i, 1, event);
   	},
@@ -1357,6 +1405,17 @@ export default {
   	},
   	deleteOptionSingleSelect(i) {
   		this.optionAnswerSingleSelect.splice(i, 1);
+  	},
+  	addOptionShortAnswer() {
+  		let index = this.optionShortAnswer.length +1;
+  		let data = 'Option ' + index;
+			this.optionShortAnswer.push(data);
+  	},
+		changeValueShortAnswer(event, i) {
+  		this.optionShortAnswer.splice(i, 1, event);
+  	},
+  	deleteOptionShortAnswer(i) {
+  		this.optionShortAnswer.splice(i, 1);
   	},
   	addOptionMultipleChoice() {
   		let index = this.optionAnswerMultipleChoice.length +1;
@@ -1404,7 +1463,12 @@ export default {
   max-width: 600px;
 }
 .videoUpload{
-	width: 100%;
-	text-align: center;
+	max-width: 60%;
+}
+.css-element-pdf{
+	position: relative;
+  display: inline;
+  max-width: 60%;
+  max-height: 450px;
 }
 </style>

@@ -1,5 +1,13 @@
 <template>
 	<div class="ml-4">
+			<div v-if="question_type == 'Short answer'">
+				<v-textarea
+          label=""
+					disabled
+          filled
+          :value="question.answers[0].correct"
+        ></v-textarea>
+			</div>
 		  <div v-if="question_type == 'True/False/Not Given'">
 				<v-radio-group :value="question.answers[0].correct.toString()">
 			    <v-radio label="True" value="true"></v-radio>
