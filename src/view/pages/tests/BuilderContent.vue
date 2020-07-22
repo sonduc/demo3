@@ -962,7 +962,8 @@ import KTWizard from "@/assets/js/components/wizard";
 import Swal from "sweetalert2";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { getIdFromURL } from 'vue-youtube-embed';
-import ApiService from '@/core/services/api.service';
+//import ApiService from "@/core/services/api.service";
+import axios from "axios";
 
 export default {
 
@@ -1033,46 +1034,46 @@ export default {
 	    optionSkill:['Speaking','Reading','Writing','Listing','Vocabulary','Grammar'],
       typeQuestionName: ['None' ,'Short answer', 'True/False/Not Given', 'Yes/No/Not Given', 'Single Choice', 'Single Select', 'Multiple Choice', 'Paragraph', 'File Upload'],
       typeQUestionValue: [0 , 1, 21, 22, 2, 3, 4, 5, 6],
-      //skills: [],
-      skills:[
-      	{ 
-      		id: 1,
-      		name: 'Speaking',
-      	  sections:[
-      	  	{
-      	  		title:'Section1',
-      	  		description: 'Description Section1',
-      	  		element_type: null,
-      	  		element_data: null,
-      	  		is_pinned: false,
-      	  		exercises: [
-	      	  		{
-	      	  			title: 'Exercises Title1',
-	      	  			description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
-	      	  			question_type: 'Short answer',
-	      	  			element_type: null,
-    	  					element_data: null,
-    	  					is_element: false,
-	      	  			questions: [
-	      	  				{
-	      	  					title: 'Title Description1',
-	      	  					description: 'Desription Question1',
-	      	  					body: null,
-	      	  					answers:[ 
-	      	  					  {
-	      	  							option: null,
-	      	  							correct: null,
-	      	  						}
-	      	  					]
-	      	  				}
-	      	  			],
-	      	  		}
+      skills: [],
+      // skills:[
+      // 	{ 
+      // 		id: 1,
+      // 		name: 'Speaking',
+      // 	  sections:[
+      // 	  	{
+      // 	  		title:'Section1',
+      // 	  		description: 'Description Section1',
+      // 	  		element_type: null,
+      // 	  		element_data: null,
+      // 	  		is_pinned: false,
+      // 	  		exercises: [
+	     //  	  		{
+	     //  	  			title: 'Exercises Title1',
+	     //  	  			description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
+	     //  	  			question_type: 'Short answer',
+	     //  	  			element_type: null,
+    	 //  					element_data: null,
+    	 //  					is_element: false,
+	     //  	  			questions: [
+	     //  	  				{
+	     //  	  					title: 'Title Description1',
+	     //  	  					description: 'Desription Question1',
+	     //  	  					body: null,
+	     //  	  					answers:[ 
+	     //  	  					  {
+	     //  	  							option: null,
+	     //  	  							correct: null,
+	     //  	  						}
+	     //  	  					]
+	     //  	  				}
+	     //  	  			],
+	     //  	  		}
       	  		
-      	  		],
-      	  	},
-      	  ] 
-      	},
-      ],
+      // 	  		],
+      // 	  	},
+      // 	  ] 
+      // 	},
+      // ],
     }
   },
   computed: {},
@@ -1101,7 +1102,9 @@ export default {
       }, 500);
     });
   },
-
+  created() {
+  	this.testAxios();
+  },
   watch: {
     isUpdating (val) {
       if (val) {
@@ -1121,16 +1124,32 @@ export default {
   		if(element_data) return getIdFromURL(element_data);
  		  else return '';
   	},
+  	testAxios(){
+  		fetch('https://ipp.test/create-test', { method: 'get'})
+  		.then(function(response){
+  			console.log(response);
+  		});
+  		// ApiService.get("https://ipp.test/create-test").then(function(response){
+  		// 	console.log(response);
+  		// });
+  	},
     async submit() {
-    	await ApiService.post("tests/test/create-test").then(response => {
-    			console.log(response);
-	        Swal.fire({
-	        title: "",
-	        text: "The application has been successfully submitted!",
-	        icon: "success",
-	        confirmButtonClass: "btn btn-secondary"
-	      });
-      });
+    	await axios.post('https://ipp.test/create-test')
+			.then(function (response) {
+			  console.log(response);
+			})
+			.catch(function (error) {
+			  console.log(error);
+			});
+    	// await ApiService.post("https://ipp.test/create-test").then(response => {
+    	// 		console.log(response);
+	    //     Swal.fire({
+	    //     title: "",
+	    //     text: "The application has been successfully submitted!",
+	    //     icon: "success",
+	    //     confirmButtonClass: "btn btn-secondary"
+	    //   });
+     //  });
     },
     remove (item) {
       const index = this.friends.indexOf(item.name)
