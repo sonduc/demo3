@@ -1,6 +1,6 @@
 <template>
 	<v-app>
-		<div class="card card-custom">
+		<div class="card card-custom" v-if="!is_loading">
 	    <div class="card-body p-0">
 	      <!--begin: Wizard-->
 	      <div
@@ -58,7 +58,7 @@
 				                label="Title"
 				                label-for="input-sm"
 				              >
-				                <b-form-input id="input-sm" size="sm" placeholder="Enter text"></b-form-input>
+				                <b-form-input v-model="test_title" size="sm" placeholder="Enter text"></b-form-input>
 				              </b-form-group>
 											
 											<b-form-group
@@ -67,7 +67,7 @@
 				                label-size="lg"
 				                label="Limit Time"
 				              >
-				                <b-form-checkbox size="lg"></b-form-checkbox>
+				                <b-form-checkbox v-model="time_restriction" size="lg"></b-form-checkbox>
 				              </b-form-group>
 
 				              <b-form-group
@@ -77,7 +77,7 @@
 				                label="Description"
 				                label-for="textarea"
 				                >
-			                  <ckeditor :editor="editor" v-model="editorData"></ckeditor>
+			                  <ckeditor :editor="editor" v-model="test_description"></ckeditor>
 				              </b-form-group>
 				            </div>
 									</v-col>
@@ -90,9 +90,9 @@
 				                label="Grading Scale"
 				                >
 				              	<v-autocomplete
-						              v-model="friends"
+						              v-model="tag_type"
 						              :disabled="isUpdating"
-						              :items="people"
+						              :items="tags"
 						              filled
 						              chips
 						              color="blue-grey"
@@ -132,9 +132,9 @@
 				                label="Rarity"
 				                >
 						            <v-autocomplete
-						              v-model="friends"
+						              v-model="tag_type"
 						              :disabled="isUpdating"
-						              :items="people"
+						              :items="tags"
 						              filled
 						              chips
 						              color="blue-grey lighten-2"
@@ -177,9 +177,9 @@
 				                label="Level(s)"
 				                >
 						            <v-autocomplete
-						              v-model="friends"
+						              v-model="tag_type"
 						              :disabled="isUpdating"
-						              :items="people"
+						              :items="tags"
 						              filled
 						              chips
 						              color="blue-grey lighten-2"
@@ -220,9 +220,9 @@
 				                label="Skill(s)"
 				                >
 						            <v-autocomplete
-						              v-model="friends"
+						              v-model="tag_type"
 						              :disabled="isUpdating"
-						              :items="people"
+						              :items="tags"
 						              filled
 						              chips
 						              color="blue-grey lighten-2"
@@ -265,9 +265,9 @@
 				                label="Vocabulary Tag(s)"
 				                >
 						            <v-autocomplete
-						              v-model="friends"
+						              v-model="tag_type"
 						              :disabled="isUpdating"
-						              :items="people"
+						              :items="tags"
 						              filled
 						              chips
 						              color="blue-grey lighten-2"
@@ -308,9 +308,9 @@
 				                label="Grammar Tag(s)"
 				                >
 						            <v-autocomplete
-						              v-model="friends"
+						              v-model="tag_type"
 						              :disabled="isUpdating"
-						              :items="people"
+						              :items="tags"
 						              filled
 						              chips
 						              color="blue-grey lighten-2"
@@ -353,9 +353,9 @@
 				                label="Other Tag(s)"
 				                >
 						            <v-autocomplete
-						              v-model="friends"
+						              v-model="tag_type"
 						              :disabled="isUpdating"
-						              :items="people"
+						              :items="tags"
 						              filled
 						              chips
 						              color="blue-grey lighten-2"
@@ -410,7 +410,7 @@
 								        v-for="(skill, index) in skills"
 								        :key="skill.id"
 								      >
-								        {{ skill.name }}
+								        {{ skill.skill_type }}
 								      	<v-icon right @click="deleteSkill(index)">mdi-close</v-icon>
 								      </v-tab>
 
@@ -427,7 +427,7 @@
 								          		<template v-for="(section, i) in skill.sections">
 													      <v-tab v-if="skill.sections.length" :key="i" class="tab-section">
 													        <v-icon left>mdi-format-align-justify</v-icon>
-													        {{ section.title }}
+													        {{ section.section_title }}
 													      </v-tab>
 												    	</template>
 								     					<v-icon @click="openDialogSection(index)">mdi-plus</v-icon>
@@ -435,7 +435,7 @@
 															<template v-for="(section, i) in skill.sections">
 																<v-tab-item v-if="skill.sections.length" :key="i">
 													        <v-card flat class="ml-4">
-																		<h3 style="cursor: pointer;" @click="editSection(index, i)">{{section.description}}
+																		<h3 style="cursor: pointer;" @click="editSection(index, i)">{{section.section_description}}
 															    		<v-icon right>mdi-file-document-edit-outline</v-icon>
 															    	</h3>
 													          <div class="mt-4">
@@ -468,10 +468,10 @@
 																	    </v-btn>
 																	    <template v-for="(exercise, iExer) in section.exercises">
 																		    <div v-if="section.exercises.length" class="ml-12 mt-4" :key="iExer">
-																		    	<h4 style="cursor: pointer;" @click="editExercise(index, i, iExer)">{{exercise.title}}
+																		    	<h4 style="cursor: pointer;" @click="editExercise(index, i, iExer)">{{exercise.exercise_title}}
 																		    		<v-icon right>mdi-file-document-edit-outline</v-icon>
 																		    	</h4>
-																					<p class="text-description">{{exercise.description}}</p>
+																					<p class="text-description">{{exercise.exercise_description}}</p>
 																					<div style="width: max-content;" v-if="exercise.element_type != null && exercise.element_data != null">
 																			  		<vuetify-audio v-if="exercise.element_type =='Audio'" :file="exercise.element_data" color="success"></vuetify-audio>
 																						<v-img v-if="exercise.element_type =='Image'" :src="exercise.element_data"></v-img>
@@ -500,7 +500,7 @@
 																				    <div v-if="exercise.questions.length" class="ml-12 mt-4" :key="iQues">
 																				    	<h4>{{question.title}}</h4>
 																							<p class="text-description">{{question.description}}</p> 
-																						  <TypeQuestion :question="question" :question_type="exercise.question_type" />
+																						  <TypeQuestion :question="question" :exercise_type="exercise.exercise_type" />
 																				    </div>
 																			  	</template>
 																		    </div>
@@ -532,7 +532,7 @@
 	                </div>
 	                <div>
 	                  <button
-	                    v-on:click="submit"
+	                    @click.prevent="submit"
 	                    class="btn btn-success font-weight-bold text-uppercase px-9 py-4"
 	                    data-wizard-type="action-submit"
 	                  >
@@ -829,6 +829,20 @@
 										  </v-radio-group>
 									  </v-col>
 			            </template>
+			            <template v-if="data_type_question == 'Matching'">
+			            	<v-col cols="12">
+				            	<v-radio-group v-model="correctSingleChoice">
+				            		<template v-for="(option, i) in optionAnswerSingleChoice">
+											    <v-radio :value="option" :key="i">
+										        <template v-slot:label>
+										          <v-text-field :label="'Option'+i" :value="option" @change="changeValueSingleChoice($event, i)"></v-text-field>
+										          <v-btn class="mb-2"><v-icon @click="deleteOptionSingleChoice(i)">mdi-delete</v-icon></v-btn>
+										        </template>
+										      </v-radio>
+				            		</template>
+										  </v-radio-group>
+									  </v-col>
+			            </template>
 			            <template v-if="data_type_question == 'Single Choice'">
 			            	<v-col cols="3">
 			            		<v-btn large @click="addOptionSingleChoice">
@@ -962,8 +976,7 @@ import KTWizard from "@/assets/js/components/wizard";
 import Swal from "sweetalert2";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { getIdFromURL } from 'vue-youtube-embed';
-//import ApiService from "@/core/services/api.service";
-import axios from "axios";
+import ApiService from "@/service/api.service";
 
 export default {
 
@@ -977,13 +990,16 @@ export default {
   data () {
 
     return {
+    	is_loading: true,
+    	test_title: '',
+    	time_restriction: false,
+    	test_description: '',
     	id_pinned: false,
     	type_element: null,
     	element_data: null,
     	type_element_exercise: null,
     	element_data_exercise: null,
     	editor: ClassicEditor,
-    	editorData:'',
     	data_type_question: 'None',
     	dialogElement: false,
     	dialogSkill: false,
@@ -1021,18 +1037,12 @@ export default {
     	type_form_exercise: null,
 
 			autoUpdate: true,
-	    friends: [],
 	    isUpdating: false,
-	    name: 'Midnight Crew',
-	    people: [
-	      { name: 'Sandra Adams'},
-	      { name: 'Ali Connors'},
-	      { name: 'Trevor Hansen'},
-	      { name: 'Tucker Smith'},
-	    ],
+	    tag_type: [],
+	    tags:[],
 
 	    optionSkill:['Speaking','Reading','Writing','Listing','Vocabulary','Grammar'],
-      typeQuestionName: ['None' ,'Short answer', 'True/False/Not Given', 'Yes/No/Not Given', 'Single Choice', 'Single Select', 'Multiple Choice', 'Paragraph', 'File Upload'],
+      typeQuestionName: ['None' ,'Short answer', 'True/False/Not Given', 'Yes/No/Not Given', 'Single Choice', 'Single Select', 'Multiple Choice', 'Paragraph', 'File Upload', 'Matching'],
       typeQUestionValue: [0 , 1, 21, 22, 2, 3, 4, 5, 6],
       skills: [],
       // skills:[
@@ -1103,7 +1113,10 @@ export default {
     });
   },
   created() {
-  	this.testAxios();
+  	this.is_loading = true;
+  	this.getAllTag();
+  	//this.getAllElementType();
+  	this.is_loading = false;
   },
   watch: {
     isUpdating (val) {
@@ -1124,36 +1137,45 @@ export default {
   		if(element_data) return getIdFromURL(element_data);
  		  else return '';
   	},
-  	testAxios(){
-  		fetch('https://ipp.test/create-test', { method: 'get'})
-  		.then(function(response){
-  			console.log(response);
-  		});
-  		// ApiService.get("https://ipp.test/create-test").then(function(response){
-  		// 	console.log(response);
-  		// });
+  	async getAllTag() {
+  		let seft = this;
+  		await ApiService.get('tag-list')
+  		.then(function (response) {
+  			seft.tags = response.data.data;
+  		})
   	},
+  	// async getAllElementType() {
+  	// 	await ApiService.get('element-type-list')
+  	// 	.then(function (response) {
+  	// 		console.log(response);
+  	// 	})
+  	// },
     async submit() {
-    	await axios.post('https://ipp.test/create-test')
-			.then(function (response) {
+    	let data = {
+    		test_title: this.test_title,
+    		test_description: this.test_description,
+    		time_restriction: (this.time_restriction == true) ? 1 : 0,
+    		skills: this.skills,
+    	};
+    	//console.log(data);
+    	await ApiService.post('create-test', data)
+    	.then(function (response) {
 			  console.log(response);
+			  Swal.fire({
+	        title: "",
+	        text: "The application has been successfully submitted!",
+	        icon: "success",
+	        confirmButtonClass: "btn btn-secondary"
+	      });
 			})
 			.catch(function (error) {
 			  console.log(error);
 			});
-    	// await ApiService.post("https://ipp.test/create-test").then(response => {
-    	// 		console.log(response);
-	    //     Swal.fire({
-	    //     title: "",
-	    //     text: "The application has been successfully submitted!",
-	    //     icon: "success",
-	    //     confirmButtonClass: "btn btn-secondary"
-	    //   });
-     //  });
     },
+
     remove (item) {
-      const index = this.friends.indexOf(item.name)
-      if (index >= 0) this.friends.splice(index, 1)
+      const index = this.tag_type.indexOf(item.name)
+      if (index >= 0) this.tag_type.splice(index, 1)
     },
   	openDialogSkill() {
   		this.dialogSkill = true;
@@ -1161,10 +1183,12 @@ export default {
   	btnAddSkill() {
   		if (this.dataTitleSkill != null) {
   			let data = {
-  				name: this.dataTitleSkill
+  				skill_type: this.dataTitleSkill,
+  				skill_description: '',
+  				duration: 1800,	
   			}
-  			this.optionSkill.splice(this.optionSkill.findIndex(e => e === this.dataTitleSkill), 1);
   			this.skills.push(data);
+  			this.optionSkill.splice(this.optionSkill.findIndex(e => e === this.dataTitleSkill), 1);
   			this.tabSkill = this.skills.length - 1;
   			this.dataTitleSkill = null;
   		}
@@ -1221,8 +1245,8 @@ export default {
   	},
   	btnAddSection() {
   		let data = {
-  			title: this.inputTitleSection,
-  			description: this.inputDesSection
+  			section_title: this.inputTitleSection,
+  			section_description: this.inputDesSection
   		}
   		let dataCheck = this.skills[this.indexSkill].sections;
   		if(dataCheck == undefined || dataCheck == null) {
@@ -1238,13 +1262,13 @@ export default {
   		this.indexSkill 		= indexSkill;
   		this.indexSection 	= indexSection;
   		let data = this.skills[indexSkill].sections[indexSection];
-  		this.inputTitleSection = data.title;
-			this.inputDesSection = data.description;
+  		this.inputTitleSection = data.section_title;
+			this.inputDesSection = data.section_description;
   	},
   	btnEditSection() {
   		let data = {
-  			title: this.inputTitleSection,
-  			description: this.inputDesSection
+  			section_title: this.inputTitleSection,
+  			section_description: this.inputDesSection
   		}
   		this.skills[this.indexSkill].sections.splice(this.indexSection, 1, data);
   		this.dialogSection = false;
@@ -1275,9 +1299,9 @@ export default {
   	},
   	btnAddExercise() {
   		let data = {
-  			title: this.inputTitleExercise,
-  			description: this.inputDesExercise,
-  			question_type: this.data_type_question,
+  			exercise_title: this.inputTitleExercise,
+  			exercise_description: this.inputDesExercise,
+  			exercise_type: this.data_type_question,
   			element_type: this.type_element_exercise,
   			element_data: this.element_data_exercise,
   			is_element: this.toggle_element,
@@ -1296,20 +1320,21 @@ export default {
   		this.indexSection 	= indexSection;
   		this.indexExercise 	= indexExercise;
   		let data = this.skills[indexSkill].sections[indexSection].exercises[indexExercise];
-  		this.inputTitleExercise = data.title;
-			this.inputDesExercise = data.description;
-			this.data_type_question = data.question_type;
+  		this.inputTitleExercise = data.exercise_title;
+			this.inputDesExercise = data.exercise_description;
+			this.data_type_question = data.exercise_type;
 			this.type_element_exercise = data.element_type;
 			this.element_data_exercise = data.element_data;
 			this.toggle_element = data.is_element;
   	},
   	btnEditExercise() {
   		let data = {
-  			title: this.inputTitleExercise,
-  			description: this.inputDesExercise,
-  			question_type: this.data_type_question,
+  			exercise_title: this.inputTitleExercise,
+  			exercise_description: this.inputDesExercise,
+  			exercise_type: this.data_type_question,
   			element_type: this.type_element_exercise,
   			element_data: this.element_data_exercise,
+  			is_element: this.toggle_element,
   		}
   		this.skills[this.indexSkill].sections[this.indexSection].exercises.splice(this.indexExercise, 1, data);
   		this.dialogExercise = false;
@@ -1318,9 +1343,15 @@ export default {
   		this.indexSkill 		= indexSkill;
   		this.indexSection 	= indexSection;
   		this.indexExercise 	= indexExercise;
-  		this.data_type_question = this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].question_type;
+  		this.data_type_question = this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].exercise_type;
   		this.inputTitleQuestion = null;
 			this.inputDesQuestion = null;
+			this.correctShortAnswer = null;
+			this.correctYesNo = null;
+			this.correctTrueFalse = null;
+			this.correctSingleChoice = null;
+			this.correctSingleSelect = null;
+			this.correctOptShortAn = null;
   		this.dialogQuestion = true;
   	},
   	btnAddQuestion() {
@@ -1334,33 +1365,33 @@ export default {
   		}
   		let indexRowQuestion = this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].questions.push(data) -1;
 
-			this.actionAddAnswer(indexRowQuestion, this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].question_type);
+			this.actionAddAnswer(indexRowQuestion, this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].exercise_type);
   		this.dialogQuestion = false;
   	},
-  	actionAddAnswer(indexRowQuestion, question_type) {
+  	actionAddAnswer(indexRowQuestion, exercise_type) {
   		let optionAnswer, correctAnswer;
 
-  		if (question_type == 'True/False/Not Given') {
+  		if (exercise_type == 'True/False/Not Given') {
   			optionAnswer = ['True', 'False','Not Given'];
   			correctAnswer = this.correctTrueFalse;
   		}
-  		else if (question_type == 'Short answer') {
+  		else if (exercise_type == 'Short answer') {
   			optionAnswer = null;
   			correctAnswer = this.correctShortAnswer;
   		}
-  		else if (question_type == 'Yes/No/Not Given') {
+  		else if (exercise_type == 'Yes/No/Not Given') {
   			optionAnswer = ['Yes', 'No','Not Given'];
   			correctAnswer = this.correctYesNo;
   		}
-  		else if (question_type == 'Single Choice') {
+  		else if (exercise_type == 'Single Choice') {
   			optionAnswer = this.optionAnswerSingleChoice;
   			correctAnswer = this.correctSingleChoice;
   		}
-  		else if (question_type == 'Single Select') {
+  		else if (exercise_type == 'Single Select') {
   			optionAnswer = this.optionAnswerSingleSelect;
   			correctAnswer = this.correctSingleSelect;
   		}
-  		else if (question_type == 'Multiple Choice') {
+  		else if (exercise_type == 'Multiple Choice') {
   			optionAnswer = this.optionAnswerMultipleChoice;
   			correctAnswer = null;
   		}
