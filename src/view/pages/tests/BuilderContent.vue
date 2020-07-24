@@ -83,23 +83,24 @@
 									</v-col>
 									<v-row>
 										<v-col cols="6">
-											<b-form-group
+								  		<b-form-group
 				                label-cols="4"
 				                label-cols-lg="2"
 				                label-size="lg"
-				                label="Grading Scale"
+				                label="Other Tag(s)"
 				                >
-				              	<v-autocomplete
-						              v-model="tag_type"
+						            <v-autocomplete
+						              v-model="other_tag_type"
 						              :disabled="isUpdating"
-						              :items="tags"
+						              :items="other_tags"
 						              filled
 						              chips
-						              color="blue-grey"
+						              color="blue-grey lighten-2"
+						              label=""
 						              item-text="name"
 						              item-value="name"
 						              multiple
-						             >
+						            >
 						              <template v-slot:selection="data">
 						                <v-chip
 						                  v-bind="data.attrs"
@@ -123,7 +124,7 @@
 						              </template>
 						            </v-autocomplete>
 						          </b-form-group>
-										</v-col>
+								  	</v-col>
 										<v-col cols="6"> 
 											<b-form-group
 				                label-cols="4"
@@ -132,9 +133,9 @@
 				                label="Rarity"
 				                >
 						            <v-autocomplete
-						              v-model="tag_type"
+						              v-model="rarity_tag_type"
 						              :disabled="isUpdating"
-						              :items="tags"
+						              :items="rarity_tags"
 						              filled
 						              chips
 						              color="blue-grey lighten-2"
@@ -177,9 +178,9 @@
 				                label="Level(s)"
 				                >
 						            <v-autocomplete
-						              v-model="tag_type"
+						              v-model="level_tag_type"
 						              :disabled="isUpdating"
-						              :items="tags"
+						              :items="level_tags"
 						              filled
 						              chips
 						              color="blue-grey lighten-2"
@@ -213,16 +214,16 @@
 						          </b-form-group>
 								  	</v-col>
 								  	<v-col cols="6">
-								  		 <b-form-group
+								  		<b-form-group
 				                label-cols="4"
 				                label-cols-lg="2"
 				                label-size="lg"
 				                label="Skill(s)"
 				                >
 						            <v-autocomplete
-						              v-model="tag_type"
+						              v-model="skill_tag_type"
 						              :disabled="isUpdating"
-						              :items="tags"
+						              :items="skill_tags"
 						              filled
 						              chips
 						              color="blue-grey lighten-2"
@@ -265,9 +266,9 @@
 				                label="Vocabulary Tag(s)"
 				                >
 						            <v-autocomplete
-						              v-model="tag_type"
+						              v-model="vocabulary_tag_type"
 						              :disabled="isUpdating"
-						              :items="tags"
+						              :items="vocabulary_tags"
 						              filled
 						              chips
 						              color="blue-grey lighten-2"
@@ -308,9 +309,9 @@
 				                label="Grammar Tag(s)"
 				                >
 						            <v-autocomplete
-						              v-model="tag_type"
+						              v-model="grammar_tag_type"
 						              :disabled="isUpdating"
-						              :items="tags"
+						              :items="grammar_tags"
 						              filled
 						              chips
 						              color="blue-grey lighten-2"
@@ -345,25 +346,24 @@
 								  	</v-col>
 								  </v-row>
 								  <v-row>
-								  	<v-col cols="6">
-								  		<b-form-group
+								  	<!-- <v-col cols="6">
+											<b-form-group
 				                label-cols="4"
 				                label-cols-lg="2"
 				                label-size="lg"
-				                label="Other Tag(s)"
+				                label="Grading Scale"
 				                >
-						            <v-autocomplete
+				              	<v-autocomplete
 						              v-model="tag_type"
 						              :disabled="isUpdating"
 						              :items="tags"
 						              filled
 						              chips
-						              color="blue-grey lighten-2"
-						              label=""
+						              color="blue-grey"
 						              item-text="name"
 						              item-value="name"
 						              multiple
-						            >
+						             >
 						              <template v-slot:selection="data">
 						                <v-chip
 						                  v-bind="data.attrs"
@@ -387,7 +387,7 @@
 						              </template>
 						            </v-autocomplete>
 						          </b-form-group>
-								  	</v-col>
+										</v-col> -->
 								  </v-row>
 	              </div>
 	              <!--end: Wizard Step 1-->
@@ -492,17 +492,46 @@
 																						<pdf v-if="exercise.element_type =='PDF_file'" :src="exercise.element_data"></pdf>
 																						<ckeditor v-if="exercise.element_type =='Post'" :editor="editor" v-model="exercise.element_data"></ckeditor>
 																			  	</div>
-
-																					<v-btn @click="openDialogQuestion(index, i, iExer)" class="ma-2 btn-add-exer" x-small large>
-																			      <v-icon dark>mdi-plus</v-icon>Add Question
-																			    </v-btn>
-																			    <template v-for="(question, iQues) in exercise.questions">
-																				    <div v-if="exercise.questions.length" class="ml-12 mt-4" :key="iQues">
-																				    	<h4>{{question.title}}</h4>
-																							<p class="text-description">{{question.description}}</p> 
-																						  <TypeQuestion :question="question" :exercise_type="exercise.exercise_type" />
-																				    </div>
-																			  	</template>
+																			  	<div>
+																			  		<template v-if="exercise.exercise_type == 'Matching'">
+																							<template v-for="(body, iBody) in exercise.body">
+																								<div style="display: flex;" class="ml-12" :key="iBody">
+																									<h5>{{iBody+1}}.</h5>
+																									<p style="font-size: medium;">{{body.option}} - {{body.correct}}</p>
+																								</div>
+																							</template>
+																						</template>	
+																						<template v-else-if="exercise.exercise_type == 'List Selection'">
+																							<template v-for="(option, i) in exercise.body">
+																			      		<v-row class="ml-12" align="center" :key="i">
+																			          	<v-checkbox
+																			          		v-model="option.checked"
+																			          		:label="option.value"
+																					        ></v-checkbox>
+																				        </v-row>
+																			      	</template>
+																						</template>
+																						<template v-else-if="exercise.exercise_type =='Short Answer'">
+																							<v-textarea
+																			          label=""
+																								disabled
+																			          filled
+																			          :value="exercise.body"
+																			        ></v-textarea>
+																						</template>
+																						<template v-else>
+																							<v-btn @click="openDialogQuestion(index, i, iExer)" class="ma-2 btn-add-exer" x-small large>
+																					      <v-icon dark>mdi-plus</v-icon>Add Question
+																					    </v-btn>
+																					    <template v-for="(question, iQues) in exercise.questions">
+																						    <div v-if="exercise.questions.length" class="ml-12 mt-4" :key="iQues">
+																						    	<h4>{{question.title}}</h4>
+																									<p class="text-description">{{question.description}}</p> 
+																								  <TypeQuestion :question="question" :exercise_type="exercise.exercise_type" />
+																						    </div>
+																					  	</template>
+																						</template>	
+																			  	</div>
 																		    </div>
 																	  	</template>
 																  	</div>
@@ -704,6 +733,98 @@
 			                v-model="data_type_question"
 			              ></v-select>
 			            </v-col>
+
+									<template v-if="data_type_question == 'Matching'">
+										<v-col cols="3">
+				            	<v-btn large @click="addOptionMatching">
+										    <v-icon>mdi-plus</v-icon>
+										  </v-btn>
+				            </v-col>
+			            	<v-col cols="7">
+			            		<template v-for="(option, i) in optionMatching">
+					            	<v-text-field
+					            		:key="i"
+						              :label="'Option' + (i+1)"
+						              :value="option"
+						              required
+						              @change="changeValueMatching($event, i)"
+						            ></v-text-field>
+					            </template>
+									  </v-col>
+									  <v-col cols="12">
+									  	<v-btn large>
+										    <v-icon>mdi-plus</v-icon> Matching to
+										  </v-btn>
+									  </v-col>
+									  <v-col cols="12">
+									  	<template v-for="(option, i) in optionMatching">
+									  		<div style="display: flex;" :key="i">
+									  			<v-col cols="5">
+							              <v-text-field readonly label="Correct" :value="option" required></v-text-field>
+													</v-col>
+													<v-col cols="7">
+														<v-text-field v-if="type_form_exercise == 'update'" 
+															@change="changeValueCorrectMatching($event, i, option)" 
+															label="Correct" 
+															required
+															:value="correctMatching[i].correct"
+															>	
+														</v-text-field>
+														<v-text-field v-else @change="changeValueCorrectMatching($event, i, option)" label="Correct" required></v-text-field>
+													</v-col>
+									  		</div>
+									  	</template>
+									  </v-col>
+			            </template>
+									<template v-if="data_type_question == 'List Selection'">
+			            	<v-col cols="3">
+			            		<v-btn large @click="addOptionListSelection">
+									      <v-icon>mdi-plus</v-icon>
+									    </v-btn>
+			            	</v-col>
+			            	<v-col cols="12">
+			            		<template v-for="(option, i) in optionListSelection">
+				            		<v-row align="center" :key="i">
+						            	<v-checkbox
+						            		v-model="option.checked"
+						            		hide-details
+									        ></v-checkbox>
+									        <v-text-field :label="'Option' +i" v-model="option.value"></v-text-field>
+									        <v-btn class="mb-2" @click="deleteListSelection(i)"><v-icon>mdi-delete</v-icon></v-btn>
+								        </v-row>
+							      	</template>
+									  </v-col>
+									</template>
+									<template v-if="data_type_question == 'Short Answer'">
+			            	<v-col cols="3">
+				            	<v-text-field
+					              label="Max words"
+					              required
+					              type="number"
+					            ></v-text-field>
+				            </v-col>
+				            <v-col cols="3">
+				            	<v-text-field
+					              label="Max numbers"
+					              required
+					              type="number"
+					            ></v-text-field>
+				            </v-col>
+				            <v-col cols="12">
+				            	<v-textarea
+							          filled
+							          label=""
+							          v-model.trim="correctShortAnswer"
+							          ref="correctShortAnswer"
+							        ></v-textarea>
+					            <!-- <ckeditor :editor="editor" v-model="editorData"></ckeditor> -->
+				            </v-col>
+				            <v-col>
+				            	<v-btn class="btn-add-file" depressed outlined large @click="openDialogShortAnswer">
+									      <v-icon left >mdi-plus</v-icon> Add Answer
+									    </v-btn>
+				            </v-col>
+			            </template>
 			            <v-col cols="12">
 										<v-switch v-model="toggle_element" :label="`Add Element: ${toggle_element.toString()}`"></v-switch>
 									</v-col>
@@ -781,36 +902,6 @@
 				              readonly
 				            ></v-text-field>
 				           </v-col>
-			            <template v-if="data_type_question == 'Short answer'">
-			            	<v-col cols="3">
-				            	<v-text-field
-					              label="Max words"
-					              required
-					              type="number"
-					            ></v-text-field>
-				            </v-col>
-				            <v-col cols="3">
-				            	<v-text-field
-					              label="Max numbers"
-					              required
-					              type="number"
-					            ></v-text-field>
-				            </v-col>
-				            <v-col cols="12">
-				            	<v-textarea
-							          filled
-							          label=""
-							          v-model.trim="correctShortAnswer"
-							          ref="correctShortAnswer"
-							        ></v-textarea>
-					            <!-- <ckeditor :editor="editor" v-model="editorData"></ckeditor> -->
-				            </v-col>
-				            <v-col>
-				            	<v-btn class="btn-add-file" depressed outlined large @click="openDialogShortAnswer">
-									      <v-icon left >mdi-plus</v-icon> Add Answer
-									    </v-btn>
-				            </v-col>
-			            </template>
 			            <template v-if="data_type_question == 'True/False/Not Given'">
 			            	<v-col cols="12">
 				            	<v-radio-group v-model="correctTrueFalse">
@@ -826,20 +917,6 @@
 										    <v-radio label="Yes" value="yes"></v-radio>
 										    <v-radio label="No" value="no"></v-radio>
 										    <v-radio label="Not Given" value="not given"></v-radio>
-										  </v-radio-group>
-									  </v-col>
-			            </template>
-			            <template v-if="data_type_question == 'Matching'">
-			            	<v-col cols="12">
-				            	<v-radio-group v-model="correctSingleChoice">
-				            		<template v-for="(option, i) in optionAnswerSingleChoice">
-											    <v-radio :value="option" :key="i">
-										        <template v-slot:label>
-										          <v-text-field :label="'Option'+i" :value="option" @change="changeValueSingleChoice($event, i)"></v-text-field>
-										          <v-btn class="mb-2"><v-icon @click="deleteOptionSingleChoice(i)">mdi-delete</v-icon></v-btn>
-										        </template>
-										      </v-radio>
-				            		</template>
 										  </v-radio-group>
 									  </v-col>
 			            </template>
@@ -1030,6 +1107,9 @@ export default {
     	optionAnswerMultipleChoice: [{ value:'Option 1', checked: false}, { value:'Option 2', checked: false}],
     	correctOptShortAn: null,
     	optionShortAnswer: ['Option 1', 'Option 2'],
+    	correctMatching: [],
+    	optionMatching: ['Option 1', 'Option 2'],
+    	optionListSelection: [{ value:'Option 1', checked: false}, { value:'Option 2', checked: false}],
 
     	tabSkill: 0,
     	tabSection: 0,
@@ -1041,26 +1121,39 @@ export default {
 	    tag_type: [],
 	    tags:[],
 
+	    level_tag_type: [],
+	    level_tags: [],
+	    rarity_tag_type: [],
+	    rarity_tags: [],
+	    grammar_tag_type: [],
+	    grammar_tags: [],
+	    vocabulary_tag_type: [],
+	    vocabulary_tags: [],
+	    other_tag_type: [],
+	    other_tags: [],
+	    skill_tag_type: [],
+	    skill_tags: [],
+
 	    optionSkill:['Speaking','Reading','Writing','Listing','Vocabulary','Grammar'],
-      typeQuestionName: ['None' ,'Short answer', 'True/False/Not Given', 'Yes/No/Not Given', 'Single Choice', 'Single Select', 'Multiple Choice', 'Paragraph', 'File Upload', 'Matching'],
+      typeQuestionName: ['None' ,'Short Answer', 'True/False/Not Given', 'Yes/No/Not Given', 'Single Choice', 'Single Select', 'Multiple Choice', 'Paragraph', 'File Upload', 'Matching', 'List Selection'],
       typeQUestionValue: [0 , 1, 21, 22, 2, 3, 4, 5, 6],
       skills: [],
       // skills:[
       // 	{ 
       // 		id: 1,
-      // 		name: 'Speaking',
+      // 		skill_type: 'Speaking',
       // 	  sections:[
       // 	  	{
-      // 	  		title:'Section1',
-      // 	  		description: 'Description Section1',
+      // 	  		section_title:'Section1',
+      // 	  		section_description: 'Description Section1',
       // 	  		element_type: null,
       // 	  		element_data: null,
       // 	  		is_pinned: false,
       // 	  		exercises: [
 	     //  	  		{
-	     //  	  			title: 'Exercises Title1',
-	     //  	  			description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
-	     //  	  			question_type: 'Short answer',
+	     //  	  			exercise_title: 'Exercises Title1',
+	     //  	  			exercise_description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
+	     //  	  			exercise_type: 'Matching',
 	     //  	  			element_type: null,
     	 //  					element_data: null,
     	 //  					is_element: false,
@@ -1139,9 +1232,16 @@ export default {
   	},
   	async getAllTag() {
   		let seft = this;
-  		await ApiService.get('tag-list')
+  		await ApiService.get('tags-by-types')
   		.then(function (response) {
-  			seft.tags = response.data.data;
+  			//seft.tags = response.data.data;
+  			console.log(response.data.data);
+  			seft.grammar_tags = response.data.data['grammar'];
+  			seft.other_tags = response.data.data['others'];
+  			seft.skill_tags = response.data.data['skill'];
+  			seft.grammar_tags = response.data.data['vocabulary'];
+  			seft.rarity_tags = response.data.data['rarity'];
+  			seft.level_tags = response.data.data['level'];
   		})
   	},
   	// async getAllElementType() {
@@ -1174,6 +1274,7 @@ export default {
     },
 
     remove (item) {
+    	console.log(item);
       const index = this.tag_type.indexOf(item.name)
       if (index >= 0) this.tag_type.splice(index, 1)
     },
@@ -1284,6 +1385,10 @@ export default {
   		this.indexSkill 	= indexSkill;
   		this.indexSection = indexSection;
   		this.dialogExercise = true;
+  		this.optionMatching = ['Option 1', 'Option 2'];
+  		this.correctMatching = [];
+  		this.optionListSelection = [{ value:'Option 1', checked: false}, { value:'Option 2', checked: false}];
+  		this.correctShortAnswer = null;
   	},
   	onElementExerciseChange(file) {
   		let vm = this;
@@ -1298,6 +1403,17 @@ export default {
       reader.readAsDataURL(file);
   	},
   	btnAddExercise() {
+  		let body;
+  		if(this.data_type_question == "Matching") {
+  			body = this.correctMatching;
+  		} else if(this.data_type_question == "List Selection") {
+  			body = this.optionListSelection;
+  		} else if (this.data_type_question == "Short Answer") {
+  			body = this.correctShortAnswer;	
+  		} else {
+  			body = null;
+  		}
+
   		let data = {
   			exercise_title: this.inputTitleExercise,
   			exercise_description: this.inputDesExercise,
@@ -1305,6 +1421,7 @@ export default {
   			element_type: this.type_element_exercise,
   			element_data: this.element_data_exercise,
   			is_element: this.toggle_element,
+  			body: body,
   		}
   		let dataCheck = this.skills[this.indexSkill].sections[this.indexSection].exercises;
   		if(dataCheck == undefined || dataCheck == null) {
@@ -1326,8 +1443,28 @@ export default {
 			this.type_element_exercise = data.element_type;
 			this.element_data_exercise = data.element_data;
 			this.toggle_element = data.is_element;
+			if(data.exercise_type == 'Matching') {
+				this.correctMatching = data.body;
+				this.optionMatching = data.body.map(function(item) {
+				  return item.option;
+				});
+			} else if(data.exercise_type == 'List Selection') {
+				this.optionListSelection = data.body;
+			} else if(data.exercise_type == 'Short Answer') {
+				this.correctShortAnswer = data.body;
+			} 
   	},
   	btnEditExercise() {
+  		let body;
+  		if(this.data_type_question == "Matching") {
+  			body = this.correctMatching;
+  		} else if(this.data_type_question == "List Selection") {
+  			body = this.optionListSelection;
+  		} else if(this.data_type_question == "Short Answer") {
+  			body = this.correctShortAnswer;
+  		} else {
+  			body = null;
+  		}
   		let data = {
   			exercise_title: this.inputTitleExercise,
   			exercise_description: this.inputDesExercise,
@@ -1335,6 +1472,7 @@ export default {
   			element_type: this.type_element_exercise,
   			element_data: this.element_data_exercise,
   			is_element: this.toggle_element,
+  			body: body,
   		}
   		this.skills[this.indexSkill].sections[this.indexSection].exercises.splice(this.indexExercise, 1, data);
   		this.dialogExercise = false;
@@ -1346,7 +1484,6 @@ export default {
   		this.data_type_question = this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].exercise_type;
   		this.inputTitleQuestion = null;
 			this.inputDesQuestion = null;
-			this.correctShortAnswer = null;
 			this.correctYesNo = null;
 			this.correctTrueFalse = null;
 			this.correctSingleChoice = null;
@@ -1374,10 +1511,6 @@ export default {
   		if (exercise_type == 'True/False/Not Given') {
   			optionAnswer = ['True', 'False','Not Given'];
   			correctAnswer = this.correctTrueFalse;
-  		}
-  		else if (exercise_type == 'Short answer') {
-  			optionAnswer = null;
-  			correctAnswer = this.correctShortAnswer;
   		}
   		else if (exercise_type == 'Yes/No/Not Given') {
   			optionAnswer = ['Yes', 'No','Not Given'];
@@ -1477,6 +1610,42 @@ export default {
   	},
   	deleteOptionMultipleChoice(i){
   		this.optionAnswerMultipleChoice.splice(i, 1);
+  	},
+  	addOptionMatching() {
+  		let index = this.optionMatching.length +1;
+  		let data = 'Option ' + index;
+			this.optionMatching.push(data).length;
+			if(this.type_form_exercise == 'update') {
+				let dataMatching = {
+					correct: ''
+				}
+				this.correctMatching.push(dataMatching);
+			}
+  	},
+  	changeValueMatching(event, i) {
+  		this.optionMatching.splice(i, 1, event);
+  	},
+  	changeValueCorrectMatching(event, i, option) {
+			if(this.correctMatching[i]) {
+			  this.correctMatching[i].correct = event;
+			  this.correctMatching[i].option = option;
+			} else{
+				this.correctMatching.push({
+					correct: event,
+					option: option,
+				});
+			}
+  	},
+  	addOptionListSelection() {
+  		let index = this.optionListSelection.length +1;
+  		let data = {
+  			value: 'Option ' + index,
+  			checked: false, 
+  		}
+			this.optionListSelection.push(data);
+  	},
+  	deleteListSelection(i){
+  		this.optionListSelection.splice(i, 1);
   	},
   }
 }
