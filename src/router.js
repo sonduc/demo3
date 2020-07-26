@@ -7,7 +7,7 @@ export default new Router({
   routes: [
     {
       path: "/",
-      redirect: "/dashboard",
+      redirect: "/builder-content/form-builder",
       component: () => import("@/view/layout/Layout"),
       children: [
         {

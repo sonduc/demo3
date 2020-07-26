@@ -38,6 +38,16 @@
 	        </v-row>
       	</template>
 		  </div>
+      <div v-if="exercise_type == 'Paragraph'">
+        <v-textarea
+          filled
+          disabled
+          label="Paragraph"
+        ></v-textarea>
+      </div>
+      <div v-if="exercise_type == 'File Upload'">
+        <b-form-file disabled class="mb-2" placeholder="Choose a file"></b-form-file>
+      </div>
 	</div>
 
 </template>
@@ -54,7 +64,7 @@ export default {
   created() {
   	//console.log(this.question);
   }
-  
+
 }
 </script>
 

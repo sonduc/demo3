@@ -10,7 +10,8 @@ import axios from "axios";
 
 import "vuetify/dist/vuetify.min.css";
 import ckeditor from "@ckeditor/ckeditor5-vue";
-import VueYouTubeEmbed from 'vue-youtube-embed'
+import VueYouTubeEmbed from 'vue-youtube-embed';
+import VueScrollTo  from 'vue-scrollto';
 
 Vue.config.productionTip = false;
 
@@ -60,6 +61,7 @@ window.axios.defaults.baseURL = 'https://ipp.test/api/';
 
 Vue.use(ckeditor);
 Vue.use(VueYouTubeEmbed);
+Vue.use(VueScrollTo);
 
 new Vue({
   router,

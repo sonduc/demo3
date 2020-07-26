@@ -5,11 +5,11 @@
     <!-- end:: Header Mobile -->
 
     <Loader v-if="loaderEnabled" v-bind:logo="loaderLogo"></Loader>
-    
+
     <!-- begin::Body -->
     <div class="d-flex flex-row flex-column-fluid page">
       <!-- begin:: Aside Left -->
-      <KTAside v-if="asideEnabled"></KTAside>
+      <!-- <KTAside v-if="asideEnabled"></KTAside> -->
       <!-- end:: Aside Left -->
 
       <div id="kt_wrapper" class="d-flex flex-column flex-row-fluid wrapper">
@@ -21,11 +21,11 @@
           <!-- begin:: Content Head -->
 
           <!-- begin:: Content Head -->
-          <KTSubheader
+          <!-- <KTSubheader
             v-if="subheaderDisplay"
             v-bind:breadcrumbs="breadcrumbs"
             v-bind:title="pageTitle"
-          />
+          /> -->
           <!-- end:: Content Head -->
 
           <!-- begin:: Content Body -->
@@ -53,11 +53,11 @@
 
 <script>
 import { mapGetters } from "vuex";
-import KTAside from "@/view/layout/aside/Aside.vue";
+//import KTAside from "@/view/layout/aside/Aside.vue";
 import KTHeaderMobile from "@/view/layout/header/HeaderMobile.vue";
 import KTFooter from "@/view/layout/footer/Footer.vue";
 import HtmlClass from "@/core/services/htmlclass.service";
-import KTSubheader from "@/view/layout/subheader/Subheader.vue";
+//import KTSubheader from "@/view/layout/subheader/Subheader.vue";
 import KTStickyToolbar from "@/view/layout/extras/StickyToolbar.vue";
 import KTScrollTop from "@/view/layout/extras/ScrollTop";
 import Loader from "@/view/content/Loader.vue";
@@ -69,10 +69,10 @@ import {
 export default {
   name: "Layout",
   components: {
-    KTAside,
+    //KTAside,
     KTHeaderMobile,
     KTFooter,
-    KTSubheader,
+    //KTSubheader,
     KTStickyToolbar,
     KTScrollTop,
     Loader
@@ -156,3 +156,8 @@ export default {
   }
 };
 </script>
+<style lang="css" scoped>
+.aside-secondary-enabled.aside-fixed .wrapper {
+  padding-left: 0px !important;;
+}
+</style>

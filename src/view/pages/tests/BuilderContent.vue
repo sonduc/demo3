@@ -1,6 +1,7 @@
 <template>
 	<v-app>
-		<div class="card card-custom" v-if="!is_loading">
+		<loading :active.sync="is_call_api"></loading>
+		<div class="card card-custom" v-if="!is_loading_page">
 	    <div class="card-body p-0">
 	      <!--begin: Wizard-->
 	      <div
@@ -60,7 +61,7 @@
 				              >
 				                <b-form-input v-model="test_title" size="sm" placeholder="Enter text"></b-form-input>
 				              </b-form-group>
-											
+
 											<b-form-group
 				                label-cols="4"
 				                label-cols-lg="2"
@@ -107,7 +108,7 @@
 						                  :input-value="data.selected"
 						                  close
 						                  @click="data.select"
-						                  @click:close="remove(data.item)"
+						                  @click:close="removeOptionTag(data.item)"
 						                >
 						                  {{ data.item.name }}
 						                </v-chip>
@@ -125,7 +126,7 @@
 						            </v-autocomplete>
 						          </b-form-group>
 								  	</v-col>
-										<v-col cols="6"> 
+										<v-col cols="6">
 											<b-form-group
 				                label-cols="4"
 				                label-cols-lg="2"
@@ -150,7 +151,7 @@
 						                  :input-value="data.selected"
 						                  close
 						                  @click="data.select"
-						                  @click:close="remove(data.item)"
+						                  @click:close="removeOptionTag(data.item)"
 						                >
 						                  {{ data.item.name }}
 						                </v-chip>
@@ -195,7 +196,7 @@
 						                  :input-value="data.selected"
 						                  close
 						                  @click="data.select"
-						                  @click:close="remove(data.item)"
+						                  @click:close="removeOptionTag(data.item)"
 						                >
 						                  {{ data.item.name }}
 						                </v-chip>
@@ -238,7 +239,7 @@
 						                  :input-value="data.selected"
 						                  close
 						                  @click="data.select"
-						                  @click:close="remove(data.item)"
+						                  @click:close="removeOptionTag(data.item)"
 						                >
 						                  {{ data.item.name }}
 						                </v-chip>
@@ -283,7 +284,7 @@
 						                  :input-value="data.selected"
 						                  close
 						                  @click="data.select"
-						                  @click:close="remove(data.item)"
+						                  @click:close="removeOptionTag(data.item)"
 						                >
 						                  {{ data.item.name }}
 						                </v-chip>
@@ -326,7 +327,7 @@
 						                  :input-value="data.selected"
 						                  close
 						                  @click="data.select"
-						                  @click:close="remove(data.item)"
+						                  @click:close="removeOptionTag(data.item)"
 						                >
 						                  {{ data.item.name }}
 						                </v-chip>
@@ -370,7 +371,7 @@
 						                  :input-value="data.selected"
 						                  close
 						                  @click="data.select"
-						                  @click:close="remove(data.item)"
+						                  @click:close="removeOptionTag(data.item)"
 						                >
 						                  {{ data.item.name }}
 						                </v-chip>
@@ -408,6 +409,7 @@
 								    >
 								      <v-tab
 								        v-for="(skill, index) in skills"
+								      	:id="'skill'+ index"
 								        :key="skill.id"
 								      >
 								        {{ skill.skill_type }}
@@ -415,7 +417,7 @@
 								      </v-tab>
 
 								    </v-tabs>
-	
+
 								    <v-tabs-items v-model="tabSkill">
 								      <v-tab-item
 								        v-for="(skill, index) in skills"
@@ -431,7 +433,7 @@
 													      </v-tab>
 												    	</template>
 								     					<v-icon @click="openDialogSection(index)">mdi-plus</v-icon>
-											
+
 															<template v-for="(section, i) in skill.sections">
 																<v-tab-item v-if="skill.sections.length" :key="i">
 													        <v-card flat class="ml-4">
@@ -468,10 +470,12 @@
 																	    </v-btn>
 																	    <template v-for="(exercise, iExer) in section.exercises">
 																		    <div v-if="section.exercises.length" class="ml-12 mt-4" :key="iExer">
-																		    	<h4 style="cursor: pointer;" @click="editExercise(index, i, iExer)">{{exercise.exercise_title}}
-																		    		<v-icon right>mdi-file-document-edit-outline</v-icon>
+																		    	<h4>
+																		    		{{iExer+1}}. {{exercise.exercise_title}}
+																		    		<v-icon @click="editExercise(index, i, iExer)" right>mdi-file-document-edit-outline</v-icon>
+																		    		<v-icon @click="deleteExercise(index, i, iExer)" right>mdi-delete</v-icon>
 																		    	</h4>
-																					<p class="text-description">{{exercise.exercise_description}}</p>
+																					<p class="text-description ml-2">{{exercise.exercise_description}}</p>
 																					<div style="width: max-content;" v-if="exercise.element_type != null && exercise.element_data != null">
 																			  		<vuetify-audio v-if="exercise.element_type =='Audio'" :file="exercise.element_data" color="success"></vuetify-audio>
 																						<v-img v-if="exercise.element_type =='Image'" :src="exercise.element_data"></v-img>
@@ -500,7 +504,7 @@
 																									<p style="font-size: medium;">{{body.option}} - {{body.correct}}</p>
 																								</div>
 																							</template>
-																						</template>	
+																						</template>
 																						<template v-else-if="exercise.exercise_type == 'List Selection'">
 																							<template v-for="(option, i) in exercise.body">
 																			      		<v-row class="ml-12" align="center" :key="i">
@@ -525,17 +529,20 @@
 																					    </v-btn>
 																					    <template v-for="(question, iQues) in exercise.questions">
 																						    <div v-if="exercise.questions.length" class="ml-12 mt-4" :key="iQues">
-																						    	<h4>{{question.title}}</h4>
-																									<p class="text-description">{{question.description}}</p> 
+																						    	<h4>
+																						    		{{iQues+1}}. {{question.title}}
+																						    		<v-icon @click="deleteQuestion(index, i, iExer, iQues)" right>mdi-delete</v-icon>
+																						    	</h4>
+																									<p class="text-description">{{question.description}}</p>
 																								  <TypeQuestion :question="question" :exercise_type="exercise.exercise_type" />
 																						    </div>
 																					  	</template>
-																						</template>	
+																						</template>
 																			  	</div>
 																		    </div>
 																	  	</template>
 																  	</div>
-																		
+
 													        </v-card>
 													      </v-tab-item>
 															</template>
@@ -584,12 +591,17 @@
 	      </div>
 	    </div>
 	    <!--end: Wizard-->
-			
+
 			<v-row>
 				<v-dialog v-model="dialogElement" persistent max-width="800px">
 			    <v-card>
 			      <v-card-title>
-			        <span class="headline">Add Element</span>
+			      	<v-col cols="11">
+			      		<span class="headline">Add Element</span>
+			      	</v-col>
+			        <v-col cols="1">
+			        	<v-icon @click="dialogElement = false" right>mdi-close</v-icon>
+			      	</v-col>
 			      </v-card-title>
 			      <v-card-text>
 			        <v-container>
@@ -607,7 +619,7 @@
 						    	</v-radio-group>
 								</v-col>
 								<v-col cols="12">
-									<v-file-input small-chips label="Upload file" @change="onElementChange" v-if="type_element != null && type_element != 'Embed_yt' && type_element != 'Post'"></v-file-input> 
+									<v-file-input small-chips label="Upload file" @change="onElementChange" v-if="type_element != null && type_element != 'Embed_yt' && type_element != 'Post'"></v-file-input>
 									<v-text-field label="Link YouTube" v-if="type_element != null && type_element == 'Embed_yt' && type_element != 'Post'" v-model="element_data" required></v-text-field>
 									<div>
 										<vuetify-audio v-if="type_element =='Audio'" :file="element_data" color="success"></vuetify-audio>
@@ -645,7 +657,12 @@
 			  <v-dialog v-model="dialogSkill" persistent max-width="600px">
 			    <v-card>
 			      <v-card-title>
-			        <span class="headline">Add Skill</span>
+			      	<v-col cols="11">
+			        	<span class="headline">Add Skill</span>
+			      	</v-col>
+			      	<v-col cols="1">
+			        	<v-icon @click="dialogSkill = false" right>mdi-close</v-icon>
+			      	</v-col>
 			      </v-card-title>
 			      <v-card-text>
 			        <v-container>
@@ -676,8 +693,13 @@
 			  <v-dialog v-model="dialogSection" persistent max-width="600px">
 			    <v-card>
 			      <v-card-title>
-			        <span v-if="type_form_section == 'add'" class="headline">Add Section</span>
-			        <span v-if="type_form_section == 'update'" class="headline">Edit Section</span>
+			      	<v-col cols="11">
+			      		<span v-if="type_form_section == 'add'" class="headline">Add Section</span>
+			        	<span v-if="type_form_section == 'update'" class="headline">Edit Section</span>
+			      	</v-col>
+			        <v-col cols="1">
+			        	<v-icon @click="dialogSection = false" right>mdi-close</v-icon>
+			      	</v-col>
 			      </v-card-title>
 			      <v-card-text>
 			        <v-container>
@@ -709,8 +731,13 @@
 			  <v-dialog v-model="dialogExercise" persistent max-width="800px">
 			    <v-card>
 			      <v-card-title>
-			        <span v-if="type_form_exercise == 'add'" class="headline">Add Exercise</span>
-			        <span v-if="type_form_exercise == 'update'" class="headline">Edit Exercise</span>
+			      	<v-col cols="11">
+			        	<span v-if="type_form_exercise == 'add'" class="headline">Add Exercise</span>
+			        	<span v-if="type_form_exercise == 'update'" class="headline">Edit Exercise</span>
+			      	</v-col>
+			        <v-col cols="1">
+			        	<v-icon @click="dialogExercise = false" right>mdi-close</v-icon>
+			      	</v-col>
 			      </v-card-title>
 			      <v-card-text>
 			        <v-container>
@@ -744,7 +771,7 @@
 			            		<template v-for="(option, i) in optionMatching">
 					            	<v-text-field
 					            		:key="i"
-						              :label="'Option' + (i+1)"
+						              :label="'Question' + (i+1)"
 						              :value="option"
 						              required
 						              @change="changeValueMatching($event, i)"
@@ -760,15 +787,15 @@
 									  	<template v-for="(option, i) in optionMatching">
 									  		<div style="display: flex;" :key="i">
 									  			<v-col cols="5">
-							              <v-text-field readonly label="Correct" :value="option" required></v-text-field>
+							              <v-text-field readonly label="Question" :value="option" required></v-text-field>
 													</v-col>
 													<v-col cols="7">
-														<v-text-field v-if="type_form_exercise == 'update'" 
-															@change="changeValueCorrectMatching($event, i, option)" 
-															label="Correct" 
+														<v-text-field v-if="type_form_exercise == 'update'"
+															@change="changeValueCorrectMatching($event, i, option)"
+															label="Correct"
 															required
 															:value="correctMatching[i].correct"
-															>	
+															>
 														</v-text-field>
 														<v-text-field v-else @change="changeValueCorrectMatching($event, i, option)" label="Correct" required></v-text-field>
 													</v-col>
@@ -839,7 +866,7 @@
 							    	</v-radio-group>
 									</v-col>
 									<v-col cols="12" v-if="toggle_element">
-										<v-file-input small-chips label="Upload file" @change="onElementExerciseChange" v-if="type_element_exercise != null && type_element_exercise != 'Embed_yt' && type_element_exercise != 'Post'"></v-file-input> 
+										<v-file-input small-chips label="Upload file" @change="onElementExerciseChange" v-if="type_element_exercise != null && type_element_exercise != 'Embed_yt' && type_element_exercise != 'Post'"></v-file-input>
 										<v-text-field label="Link YouTube" v-if="type_element_exercise != null && type_element_exercise == 'Embed_yt' && type_element_exercise != 'Post'" v-model="element_data_exercise" required></v-text-field>
 										<div>
 											<vuetify-audio v-if="type_element_exercise =='Audio'" :file="element_data_exercise" color="success"></vuetify-audio>
@@ -879,7 +906,12 @@
 			  <v-dialog v-model="dialogQuestion" persistent max-width="900px">
 			    <v-card>
 			      <v-card-title>
-			        <span class="headline">Add Question</span>
+			      	<v-col cols="11">
+			        	<span class="headline">Add Question</span>
+			      	</v-col>
+							<v-col cols="1">
+			        	<v-icon @click="dialogQuestion = false" right>mdi-close</v-icon>
+			      	</v-col>
 			      </v-card-title>
 			      <v-card-text>
 			        <v-container>
@@ -998,12 +1030,17 @@
 			    </v-card>
 			  </v-dialog>
 			</v-row>
-				
+
 			<v-row justify="center">
 			  <v-dialog v-model="dialogShortAnswer" persistent max-width="600px">
 			    <v-card>
 			      <v-card-title>
-			        <span class="headline">Add Short Answer</span>
+			        <v-col cols="11">
+			        	<span class="headline">Add Short Answer</span>
+			        </v-col>
+			        <v-col cols="1">
+			        	<v-icon @click="dialogShortAnswer = false" right>mdi-close</v-icon>
+			      	</v-col>
 			      </v-card-title>
 			      <v-card-text>
 			        <v-container>
@@ -1036,7 +1073,16 @@
 			    </v-card>
 			  </v-dialog>
 			</v-row>
-
+			<div style="position: fixed; right: 0; bottom: 0" v-if="skills.length">
+				<template v-for="(skill, i) in skills">
+					<v-card class="mx-auto" max-width="344" :key="i">
+				    <v-card-subtitle v-scroll-to="'#skill'+i" class="pb-0">scroll</v-card-subtitle>
+				    <!-- <v-card-text class="text--primary">
+				      <div>Whitehaven Beach</div>
+				    </v-card-text> -->
+				  </v-card>
+				</template>
+			</div>
 	  </div>
 	</v-app>
 </template>
@@ -1054,6 +1100,7 @@ import Swal from "sweetalert2";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { getIdFromURL } from 'vue-youtube-embed';
 import ApiService from "@/service/api.service";
+import 'vue-loading-overlay/dist/vue-loading.css';
 
 export default {
 
@@ -1063,11 +1110,12 @@ export default {
 		VuetifyAudio: () => import('vuetify-audio'),
 		Media: () => import('@dongido/vue-viaudio'),
 		pdf: () => import('vue-pdf'),
+		Loading: () => import('vue-loading-overlay'),
 	},
   data () {
-
     return {
-    	is_loading: true,
+    	is_call_api: false,
+    	is_loading_page: true,
     	test_title: '',
     	time_restriction: false,
     	test_description: '',
@@ -1137,46 +1185,46 @@ export default {
 	    optionSkill:['Speaking','Reading','Writing','Listing','Vocabulary','Grammar'],
       typeQuestionName: ['None' ,'Short Answer', 'True/False/Not Given', 'Yes/No/Not Given', 'Single Choice', 'Single Select', 'Multiple Choice', 'Paragraph', 'File Upload', 'Matching', 'List Selection'],
       typeQUestionValue: [0 , 1, 21, 22, 2, 3, 4, 5, 6],
-      skills: [],
-      // skills:[
-      // 	{ 
-      // 		id: 1,
-      // 		skill_type: 'Speaking',
-      // 	  sections:[
-      // 	  	{
-      // 	  		section_title:'Section1',
-      // 	  		section_description: 'Description Section1',
-      // 	  		element_type: null,
-      // 	  		element_data: null,
-      // 	  		is_pinned: false,
-      // 	  		exercises: [
-	     //  	  		{
-	     //  	  			exercise_title: 'Exercises Title1',
-	     //  	  			exercise_description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
-	     //  	  			exercise_type: 'Matching',
-	     //  	  			element_type: null,
-    	 //  					element_data: null,
-    	 //  					is_element: false,
-	     //  	  			questions: [
-	     //  	  				{
-	     //  	  					title: 'Title Description1',
-	     //  	  					description: 'Desription Question1',
-	     //  	  					body: null,
-	     //  	  					answers:[ 
-	     //  	  					  {
-	     //  	  							option: null,
-	     //  	  							correct: null,
-	     //  	  						}
-	     //  	  					]
-	     //  	  				}
-	     //  	  			],
-	     //  	  		}
-      	  		
-      // 	  		],
-      // 	  	},
-      // 	  ] 
-      // 	},
-      // ],
+      //skills: [],
+      skills:[
+      	{
+      		id: 1,
+      		skill_type: 'Speaking',
+      	  sections:[
+      	  	{
+      	  		section_title:'Section1',
+      	  		section_description: 'Description Section1',
+      	  		element_type: null,
+      	  		element_data: null,
+      	  		is_pinned: false,
+      	  		exercises: [
+	      	  		{
+	      	  			exercise_title: 'Exercises Title1',
+	      	  			exercise_description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
+	      	  			exercise_type: 'Matching',
+	      	  			element_type: null,
+    	  					element_data: null,
+    	  					is_element: false,
+	      	  			questions: [
+	      	  				{
+	      	  					title: 'Title Description1',
+	      	  					description: 'Desription Question1',
+	      	  					body: null,
+	      	  					answers:[
+	      	  					  {
+	      	  							option: null,
+	      	  							correct: null,
+	      	  						}
+	      	  					]
+	      	  				}
+	      	  			],
+	      	  		}
+
+      	  		],
+      	  	},
+      	  ]
+      	},
+      ],
     }
   },
   computed: {},
@@ -1185,19 +1233,16 @@ export default {
       { title: "Wizard" },
       { title: "Wizard-1" }
     ]);
-
     // Initialize form wizard
     const wizard = new KTWizard("kt_wizard_v1", {
       startStep: 1, // initial active step number
       clickableSteps: true // allow step clicking
     });
-
     // Validation before going to next page
     wizard.on("beforeNext", function(/*wizardObj*/) {
       // validate the form and use below function to stop the wizard's step
       // wizardObj.stop();
     });
-
     // Change event
     wizard.on("change", function(/*wizardObj*/) {
       setTimeout(() => {
@@ -1206,10 +1251,13 @@ export default {
     });
   },
   created() {
-  	this.is_loading = true;
+  	window.addEventListener('scroll', this.handleScroll);
+  	this.is_loading_page = true;
   	this.getAllTag();
-  	//this.getAllElementType();
-  	this.is_loading = false;
+  	this.is_loading_page = false;
+  },
+  destroyed () {
+    window.removeEventListener('scroll', this.handleScroll);
   },
   watch: {
     isUpdating (val) {
@@ -1226,6 +1274,9 @@ export default {
   },
 
   methods: {
+  	handleScroll () {
+
+    },
   	videoId(element_data) {
   		if(element_data) return getIdFromURL(element_data);
  		  else return '';
@@ -1234,8 +1285,6 @@ export default {
   		let seft = this;
   		await ApiService.get('tags-by-types')
   		.then(function (response) {
-  			//seft.tags = response.data.data;
-  			console.log(response.data.data);
   			seft.grammar_tags = response.data.data['grammar'];
   			seft.other_tags = response.data.data['others'];
   			seft.skill_tags = response.data.data['skill'];
@@ -1244,23 +1293,18 @@ export default {
   			seft.level_tags = response.data.data['level'];
   		})
   	},
-  	// async getAllElementType() {
-  	// 	await ApiService.get('element-type-list')
-  	// 	.then(function (response) {
-  	// 		console.log(response);
-  	// 	})
-  	// },
     async submit() {
+    	this.is_call_api = true;
     	let data = {
     		test_title: this.test_title,
     		test_description: this.test_description,
     		time_restriction: (this.time_restriction == true) ? 1 : 0,
     		skills: this.skills,
     	};
-    	//console.log(data);
     	await ApiService.post('create-test', data)
     	.then(function (response) {
 			  console.log(response);
+			  this.is_call_api = false;
 			  Swal.fire({
 	        title: "",
 	        text: "The application has been successfully submitted!",
@@ -1272,11 +1316,28 @@ export default {
 			  console.log(error);
 			});
     },
-
-    remove (item) {
-    	console.log(item);
-      const index = this.tag_type.indexOf(item.name)
-      if (index >= 0) this.tag_type.splice(index, 1)
+    removeOptionTag(item) {
+    	console.log(item.type_label);
+    	let index;
+    	if(item.type_label == 'Others'){
+      	index = this.other_tag_type.indexOf(item.name)
+      	if (index >= 0) this.other_tag_type.splice(index, 1)
+    	} else if(item.type_label == "Skill") {
+				index = this.skill_tag_type.indexOf(item.name)
+      	if (index >= 0) this.skill_tag_type.splice(index, 1)
+    	} else if(item.type_label == "Vocabulary") {
+				index = this.vocabulary_tag_type.indexOf(item.name)
+      	if (index >= 0) this.vocabulary_tag_type.splice(index, 1)
+    	} else if(item.type_label == "Rarity") {
+				index = this.rarity_tag_type.indexOf(item.name)
+      	if (index >= 0) this.rarity_tag_type.splice(index, 1)
+    	} else if(item.type_label == "Grammar") {
+				index = this.grammar_tag_type.indexOf(item.name)
+      	if (index >= 0) this.grammar_tag_type.splice(index, 1)
+    	} else if(item.type_label == "Level") {
+				index = this.level_tag_type.indexOf(item.name)
+      	if (index >= 0) this.level_tag_type.splice(index, 1)
+    	}
     },
   	openDialogSkill() {
   		this.dialogSkill = true;
@@ -1286,7 +1347,7 @@ export default {
   			let data = {
   				skill_type: this.dataTitleSkill,
   				skill_description: '',
-  				duration: 1800,	
+  				duration: 1800,
   			}
   			this.skills.push(data);
   			this.optionSkill.splice(this.optionSkill.findIndex(e => e === this.dataTitleSkill), 1);
@@ -1313,7 +1374,7 @@ export default {
   	},
   	onElementChange(file) {
       let vm = this;
-    	if(file == undefined){ 
+    	if(file == undefined){
     		vm.element_data = null;
     		return
     	}
@@ -1336,7 +1397,7 @@ export default {
     	this.element_data = null,
     	this.element_data = false,
     	this.dialogElement = false;
-    },	
+    },
   	openDialogSection(index) {
   		this.type_form_section = 'add';
   		this.inputTitleSection = null;
@@ -1392,7 +1453,7 @@ export default {
   	},
   	onElementExerciseChange(file) {
   		let vm = this;
-    	if(file == undefined){ 
+    	if(file == undefined){
     		vm.element_data_exercise = null;
     		return
     	}
@@ -1409,7 +1470,7 @@ export default {
   		} else if(this.data_type_question == "List Selection") {
   			body = this.optionListSelection;
   		} else if (this.data_type_question == "Short Answer") {
-  			body = this.correctShortAnswer;	
+  			body = this.correctShortAnswer;
   		} else {
   			body = null;
   		}
@@ -1452,7 +1513,22 @@ export default {
 				this.optionListSelection = data.body;
 			} else if(data.exercise_type == 'Short Answer') {
 				this.correctShortAnswer = data.body;
-			} 
+			}
+  	},
+  	deleteExercise(indexSkill, indexSection, indexExercise) {
+  		let seft = this;
+  		Swal.fire({
+			  title: 'Are you sure you want to delete?',
+			  icon: 'warning',
+			  showCancelButton: true,
+			  confirmButtonColor: '#3085d6',
+			  cancelButtonColor: '#d33',
+			  confirmButtonText: 'Yes, delete it!'
+			}).then((result) => {
+				if (result.value) {
+		  		seft.skills[indexSkill].sections[indexSection].exercises.splice(indexExercise, 1);
+	  		}
+			})
   	},
   	btnEditExercise() {
   		let body;
@@ -1484,8 +1560,8 @@ export default {
   		this.data_type_question = this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].exercise_type;
   		this.inputTitleQuestion = null;
 			this.inputDesQuestion = null;
-			this.correctYesNo = null;
-			this.correctTrueFalse = null;
+			this.correctYesNo = no;
+			this.correctTrueFalse = false;
 			this.correctSingleChoice = null;
 			this.correctSingleSelect = null;
 			this.correctOptShortAn = null;
@@ -1504,6 +1580,21 @@ export default {
 
 			this.actionAddAnswer(indexRowQuestion, this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].exercise_type);
   		this.dialogQuestion = false;
+  	},
+  	deleteQuestion(indexSkill, indexSection, indexExercise, indexQuestion) {
+  		let seft = this;
+  		Swal.fire({
+			  title: 'Are you sure you want to delete?',
+			  icon: 'warning',
+			  showCancelButton: true,
+			  confirmButtonColor: '#3085d6',
+			  cancelButtonColor: '#d33',
+			  confirmButtonText: 'Yes, delete it!'
+			}).then((result) => {
+				if (result.value) {
+		  		seft.skills[indexSkill].sections[indexSection].exercises[indexExercise].questions.splice(indexQuestion, 1);
+	  		}
+			})
   	},
   	actionAddAnswer(indexRowQuestion, exercise_type) {
   		let optionAnswer, correctAnswer;
@@ -1566,7 +1657,6 @@ export default {
 		  }, 10);
 		  this.dialogShortAnswer = false;
   	},
-
   	changeValueSingleChoice(event, i) {
   		this.optionAnswerSingleChoice.splice(i, 1, event);
   	},
@@ -1604,7 +1694,7 @@ export default {
   		let index = this.optionAnswerMultipleChoice.length +1;
   		let data = {
   			value: 'Option ' + index,
-  			checked: false, 
+  			checked: false,
   		}
 			this.optionAnswerMultipleChoice.push(data);
   	},
@@ -1640,7 +1730,7 @@ export default {
   		let index = this.optionListSelection.length +1;
   		let data = {
   			value: 'Option ' + index,
-  			checked: false, 
+  			checked: false,
   		}
 			this.optionListSelection.push(data);
   	},
@@ -1680,6 +1770,7 @@ export default {
 .text-description{
 	font-size: large;
   max-width: 600px;
+  font-style: oblique;
 }
 .videoUpload{
 	max-width: 60%;
