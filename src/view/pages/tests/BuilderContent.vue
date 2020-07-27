@@ -42,11 +42,7 @@
 	            <!--begin: Wizard Form-->
 	            <form class="form" id="kt_form">
 	              <!--begin: Wizard Step 1-->
-	              <div
-	                class="pb-5"
-	                data-wizard-type="step-content"
-	                data-wizard-state="current"
-	              	>
+	              <div class="pb-5" data-wizard-type="step-content" data-wizard-state="current">
 	                <h3 class="mb-10 font-weight-bold text-dark">
 	                  Test & Exercise Builder
 	                </h3>
@@ -425,7 +421,7 @@
 								      >
 								        <v-card flat>
 								          <v-card-text>
-								          	<v-tabs vertical>
+								          	<v-tabs vertical v-model="tabSection">
 								          		<template v-for="(section, i) in skill.sections">
 													      <v-tab v-if="skill.sections.length" :key="i" class="tab-section">
 													        <v-icon left>mdi-format-align-justify</v-icon>
@@ -465,12 +461,12 @@
 																			<ckeditor style="max-height: 450px" v-if="section.element_type =='Post'" :editor="editor" v-model="section.element_data"></ckeditor>
 																  	</div>
 																  	<div class="mt-4">
-																  		<v-btn @click="openDialogExercise(index, i)" class="ma-2 btn-add-exer" x-small large>
+																  		<v-btn ref="btnExer" @click="openDialogExercise(index, i)" class="ma-2 btn-add-exer" x-small large>
 																	      <v-icon dark>mdi-plus</v-icon>Add Exercise
 																	    </v-btn>
 																	    <template v-for="(exercise, iExer) in section.exercises">
 																		    <div v-if="section.exercises.length" class="ml-12 mt-4" :key="iExer">
-																		    	<h4>
+																		    	<h4 :id="'exercise'+ iExer">
 																		    		{{iExer+1}}. {{exercise.exercise_title}}
 																		    		<v-icon @click="editExercise(index, i, iExer)" right>mdi-file-document-edit-outline</v-icon>
 																		    		<v-icon @click="deleteExercise(index, i, iExer)" right>mdi-delete</v-icon>
@@ -529,7 +525,7 @@
 																					    </v-btn>
 																					    <template v-for="(question, iQues) in exercise.questions">
 																						    <div v-if="exercise.questions.length" class="ml-12 mt-4" :key="iQues">
-																						    	<h4>
+																						    	<h4 :id="'question'+ iQues">
 																						    		{{iQues+1}}. {{question.title}}
 																						    		<v-icon @click="deleteQuestion(index, i, iExer, iQues)" right>mdi-delete</v-icon>
 																						    	</h4>
@@ -1073,15 +1069,23 @@
 			    </v-card>
 			  </v-dialog>
 			</v-row>
-			<div style="position: fixed; right: 0; bottom: 0" v-if="skills.length">
-				<template v-for="(skill, i) in skills">
-					<v-card class="mx-auto" max-width="344" :key="i">
-				    <v-card-subtitle v-scroll-to="'#skill'+i" class="pb-0">scroll</v-card-subtitle>
-				    <!-- <v-card-text class="text--primary">
-				      <div>Whitehaven Beach</div>
-				    </v-card-text> -->
-				  </v-card>
-				</template>
+      <div style="position: fixed; right: 20px; bottom: 80px" v-if="dataScroll.length">
+        <v-hover v-slot:default="{ hover }" open-delay="200">
+  				<v-card class="mx-auto" max-width="180" style="padding: 15px;">
+            <template v-for="(exercise, iExer) in dataScroll">
+              <div :key="iExer">
+    				    <h4 class="text-truncate text-scroll" v-scroll-to="'#exercise'+ iExer">
+    				      {{iExer +1}}. {{exercise.exercise_title}}
+    				    </h4>
+                <template v-for="(question, iQues) in exercise.questions">
+                  <p v-scroll-to="'#question'+ iQues" class="pl-4 text-truncate text-scroll" :key="iQues">
+                    {{iQues+1}}. {{ question.title }}
+                  </p>
+                </template>
+              </div>
+            </template>
+  			  </v-card>
+        </v-hover>
 			</div>
 	  </div>
 	</v-app>
@@ -1122,8 +1126,10 @@ export default {
     	id_pinned: false,
     	type_element: null,
     	element_data: null,
+      element_file: null,
     	type_element_exercise: null,
     	element_data_exercise: null,
+      element_file_exercise: null,
     	editor: ClassicEditor,
     	data_type_question: 'None',
     	dialogElement: false,
@@ -1159,15 +1165,13 @@ export default {
     	optionMatching: ['Option 1', 'Option 2'],
     	optionListSelection: [{ value:'Option 1', checked: false}, { value:'Option 2', checked: false}],
 
-    	tabSkill: 0,
-    	tabSection: 0,
+    	tabSkill: null,
+    	tabSection: null,
     	type_form_section: null,
     	type_form_exercise: null,
 
 			autoUpdate: true,
 	    isUpdating: false,
-	    tag_type: [],
-	    tags:[],
 
 	    level_tag_type: [],
 	    level_tags: [],
@@ -1181,53 +1185,23 @@ export default {
 	    other_tags: [],
 	    skill_tag_type: [],
 	    skill_tags: [],
-
 	    optionSkill:['Speaking','Reading','Writing','Listing','Vocabulary','Grammar'],
       typeQuestionName: ['None' ,'Short Answer', 'True/False/Not Given', 'Yes/No/Not Given', 'Single Choice', 'Single Select', 'Multiple Choice', 'Paragraph', 'File Upload', 'Matching', 'List Selection'],
       typeQUestionValue: [0 , 1, 21, 22, 2, 3, 4, 5, 6],
-      //skills: [],
-      skills:[
-      	{
-      		id: 1,
-      		skill_type: 'Speaking',
-      	  sections:[
-      	  	{
-      	  		section_title:'Section1',
-      	  		section_description: 'Description Section1',
-      	  		element_type: null,
-      	  		element_data: null,
-      	  		is_pinned: false,
-      	  		exercises: [
-	      	  		{
-	      	  			exercise_title: 'Exercises Title1',
-	      	  			exercise_description: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.',
-	      	  			exercise_type: 'Matching',
-	      	  			element_type: null,
-    	  					element_data: null,
-    	  					is_element: false,
-	      	  			questions: [
-	      	  				{
-	      	  					title: 'Title Description1',
-	      	  					description: 'Desription Question1',
-	      	  					body: null,
-	      	  					answers:[
-	      	  					  {
-	      	  							option: null,
-	      	  							correct: null,
-	      	  						}
-	      	  					]
-	      	  				}
-	      	  			],
-	      	  		}
-
-      	  		],
-      	  	},
-      	  ]
-      	},
-      ],
+      skills: [],
     }
   },
-  computed: {},
+  computed: {
+    dataScroll: function () {
+      // if(this.skills.length && this.skills[this.tabSkill] != undefined) {
+      //   if(this.skills[this.tabSkill].sections != undefined && this.skills[this.tabSkill].sections[this.tabSection] != undefined) {
+      //     if(this.skills[this.tabSkill].sections[this.tabSection].exercises != undefined){
+      //       return this.skills[this.tabSkill].sections[this.tabSection].exercises;
+      //     }
+      //   }
+      // }
+    }
+  },
   mounted() {
     this.$store.dispatch(SET_BREADCRUMB, [
       { title: "Wizard" },
@@ -1241,7 +1215,7 @@ export default {
     // Validation before going to next page
     wizard.on("beforeNext", function(/*wizardObj*/) {
       // validate the form and use below function to stop the wizard's step
-      // wizardObj.stop();
+      //wizardObj.stop();
     });
     // Change event
     wizard.on("change", function(/*wizardObj*/) {
@@ -1272,9 +1246,8 @@ export default {
     	this.element_data_exercise = null;
     },
   },
-
   methods: {
-  	handleScroll () {
+  	handleScroll(e) {
 
     },
   	videoId(element_data) {
@@ -1317,7 +1290,6 @@ export default {
 			});
     },
     removeOptionTag(item) {
-    	console.log(item.type_label);
     	let index;
     	if(item.type_label == 'Others'){
       	index = this.other_tag_type.indexOf(item.name)
@@ -1374,6 +1346,7 @@ export default {
   	},
   	onElementChange(file) {
       let vm = this;
+      vm.element_file = file;
     	if(file == undefined){
     		vm.element_data = null;
     		return
@@ -1389,14 +1362,39 @@ export default {
   		this.indexSection 	= indexSection;
     	this.dialogElement = true;
     },
-    btnAddElement() {
-    	this.skills[this.indexSkill].sections[this.indexSection].element_type = this.type_element;
-    	this.skills[this.indexSkill].sections[this.indexSection].element_data = this.element_data;
-    	this.skills[this.indexSkill].sections[this.indexSection].id_pinned = this.id_pinned;
-    	this.type_element = null,
-    	this.element_data = null,
-    	this.element_data = false,
-    	this.dialogElement = false;
+    getValueElement(type){
+      let valueElement;
+      if(type == 'Audio') valueElement = 7;
+      else if( type == 'Image') valueElement = 2;
+      else if( type == 'Video') valueElement = 5;
+      else if( type == 'Embed_yt') valueElement = 4;
+      else if( type == 'Post') valueElement = 6;
+      else if( type == 'PDF_file') valueElement = 8;
+      return valueElement;
+    },
+    async btnAddElement() {
+      this.is_call_api = true;
+      let seft = this;
+      let valueElement = this.getValueElement(this.type_element);
+      let formData = new FormData();
+      formData.append('type', valueElement);
+      formData.append('url', this.element_data);
+      formData.append('editor', this.element_data);
+      formData.append('file', this.element_file);
+      await ApiService.post('upload-element', formData)
+      .then(function (response) {
+        if(response){
+        	seft.skills[seft.indexSkill].sections[seft.indexSection].element_type = seft.type_element;
+        	seft.skills[seft.indexSkill].sections[seft.indexSection].element_data = seft.element_data;
+        	seft.skills[seft.indexSkill].sections[seft.indexSection].is_element_pinned = seft.id_pinned;
+          seft.skills[seft.indexSkill].sections[seft.indexSection].element_id = response.data.element_code;
+        	seft.type_element = null,
+        	seft.element_data = null,
+        	seft.element_data = false,
+        	seft.dialogElement = false;
+          seft.is_call_api = false;
+        }
+      })
     },
   	openDialogSection(index) {
   		this.type_form_section = 'add';
@@ -1453,6 +1451,7 @@ export default {
   	},
   	onElementExerciseChange(file) {
   		let vm = this;
+      vm.element_file_exercise = file;
     	if(file == undefined){
     		vm.element_data_exercise = null;
     		return
@@ -1463,7 +1462,24 @@ export default {
       };
       reader.readAsDataURL(file);
   	},
-  	btnAddExercise() {
+  	async btnAddExercise() {
+      let seft = this;
+      let element_id = null;
+      if(seft.toggle_element) {
+        seft.is_call_api = true;
+        let formData = new FormData();
+        let valueElement = seft.getValueElement(seft.type_element_exercise);
+        formData.append('type', valueElement);
+        formData.append('url', seft.element_data_exercise);
+        formData.append('editor', seft.element_data_exercise);
+        formData.append('file', seft.element_file_exercise);
+        await ApiService.post('upload-element', formData)
+        .then(function (response) {
+          element_id = response.data.element_code;
+          seft.is_call_api = false;
+        })
+      }
+
   		let body;
   		if(this.data_type_question == "Matching") {
   			body = this.correctMatching;
@@ -1481,7 +1497,8 @@ export default {
   			exercise_type: this.data_type_question,
   			element_type: this.type_element_exercise,
   			element_data: this.element_data_exercise,
-  			is_element: this.toggle_element,
+  			element_id: element_id,
+        is_element: this.toggle_element,
   			body: body,
   		}
   		let dataCheck = this.skills[this.indexSkill].sections[this.indexSection].exercises;
@@ -1530,7 +1547,24 @@ export default {
 	  		}
 			})
   	},
-  	btnEditExercise() {
+  	async btnEditExercise() {
+      let seft = this;
+      let element_id = null;
+      if(seft.toggle_element) {
+        seft.is_call_api = true;
+        let formData = new FormData();
+        let valueElement = seft.getValueElement(seft.type_element_exercise);
+        formData.append('type', valueElement);
+        formData.append('url', seft.element_data_exercise);
+        formData.append('editor', seft.element_data_exercise);
+        formData.append('file', seft.element_file_exercise);
+        await ApiService.post('upload-element', formData)
+        .then(function (response) {
+          element_id = response.data.element_code;
+          seft.is_call_api = false;
+        })
+      }
+
   		let body;
   		if(this.data_type_question == "Matching") {
   			body = this.correctMatching;
@@ -1547,7 +1581,8 @@ export default {
   			exercise_type: this.data_type_question,
   			element_type: this.type_element_exercise,
   			element_data: this.element_data_exercise,
-  			is_element: this.toggle_element,
+  			element_id: element_id,
+        is_element: this.toggle_element,
   			body: body,
   		}
   		this.skills[this.indexSkill].sections[this.indexSection].exercises.splice(this.indexExercise, 1, data);
@@ -1560,7 +1595,7 @@ export default {
   		this.data_type_question = this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].exercise_type;
   		this.inputTitleQuestion = null;
 			this.inputDesQuestion = null;
-			this.correctYesNo = no;
+			this.correctYesNo = 'no';
 			this.correctTrueFalse = false;
 			this.correctSingleChoice = null;
 			this.correctSingleSelect = null;
@@ -1780,5 +1815,8 @@ export default {
   display: inline;
   max-width: 60%;
   max-height: 450px;
+}
+.text-scroll{
+  cursor: pointer;
 }
 </style>
