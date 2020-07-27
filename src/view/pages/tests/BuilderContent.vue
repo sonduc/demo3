@@ -438,7 +438,8 @@
 															    	</h3>
 													          <div class="mt-4">
 																      <v-btn @click="openDialogElement(index, i)" class="ma-2 btn-add-file" depressed outlined large>
-																	      <v-icon left >mdi-file-image</v-icon> Add Element
+																	      <v-icon left v-if="section.element_data != null">mdi-file-image</v-icon> Add Element
+																	      <v-icon left v-if="section.element_data == null">mdi-file-image</v-icon> Edit Element
 																	    </v-btn>
 																  	</div>
 																  	<div class="mt-4" v-if="section.element_type != null && section.element_data != null">
@@ -461,7 +462,7 @@
 																			<ckeditor style="max-height: 450px" v-if="section.element_type =='Post'" :editor="editor" v-model="section.element_data"></ckeditor>
 																  	</div>
 																  	<div class="mt-4">
-																  		<v-btn ref="btnExer" @click="openDialogExercise(index, i)" class="ma-2 btn-add-exer" x-small large>
+																  		<v-btn :class="{ 'scroll-btn-exer' : scrollBtnExer }" @click="openDialogExercise(index, i)" class="ma-2 btn-add-exer" x-small large>
 																	      <v-icon dark>mdi-plus</v-icon>Add Exercise
 																	    </v-btn>
 																	    <template v-for="(exercise, iExer) in section.exercises">
@@ -1172,6 +1173,7 @@ export default {
 
 			autoUpdate: true,
 	    isUpdating: false,
+	    scrollBtnExer:false,
 
 	    level_tag_type: [],
 	    level_tags: [],
@@ -1200,6 +1202,7 @@ export default {
       //     }
       //   }
       // }
+      return [];
     }
   },
   mounted() {
@@ -1247,8 +1250,13 @@ export default {
     },
   },
   methods: {
-  	handleScroll(e) {
-
+  	handleScroll() {
+  		let scrollTop = window.pageYOffset || document.scrollTop;
+  		if(scrollTop >650) {
+  			this.scrollBtnExer = true;
+  		} else {
+  			this.scrollBtnExer = false;
+  		}
     },
   	videoId(element_data) {
   		if(element_data) return getIdFromURL(element_data);
@@ -1815,6 +1823,11 @@ export default {
   display: inline;
   max-width: 60%;
   max-height: 450px;
+}
+.scroll-btn-exer{
+	position: fixed;
+	top: 1px;
+	z-index: 1000;
 }
 .text-scroll{
   cursor: pointer;
