@@ -31,7 +31,6 @@
 	              </div>
 	              <i class="wizard-arrow flaticon2-next"></i>
 	            </div>
-
 	          </div>
 	        </div>
 	        <!--end: Wizard Nav-->
@@ -342,50 +341,6 @@
 						          </b-form-group>
 								  	</v-col>
 								  </v-row>
-								  <v-row>
-								  	<!-- <v-col cols="6">
-											<b-form-group
-				                label-cols="4"
-				                label-cols-lg="2"
-				                label-size="lg"
-				                label="Grading Scale"
-				                >
-				              	<v-autocomplete
-						              v-model="tag_type"
-						              :disabled="isUpdating"
-						              :items="tags"
-						              filled
-						              chips
-						              color="blue-grey"
-						              item-text="name"
-						              item-value="name"
-						              multiple
-						             >
-						              <template v-slot:selection="data">
-						                <v-chip
-						                  v-bind="data.attrs"
-						                  :input-value="data.selected"
-						                  close
-						                  @click="data.select"
-						                  @click:close="removeOptionTag(data.item)"
-						                >
-						                  {{ data.item.name }}
-						                </v-chip>
-						              </template>
-						              <template v-slot:item="data">
-						                <template v-if="typeof data.item !== 'object'">
-						                  <v-list-item-content v-text="data.item"></v-list-item-content>
-						                </template>
-						                <template v-else>
-						                  <v-list-item-content>
-						                    <v-list-item-title v-html="data.item.name"></v-list-item-title>
-						                  </v-list-item-content>
-						                </template>
-						              </template>
-						            </v-autocomplete>
-						          </b-form-group>
-										</v-col> -->
-								  </v-row>
 	              </div>
 	              <!--end: Wizard Step 1-->
 
@@ -420,7 +375,7 @@
 								        :key="skill.id"
 								      >
 								        <v-card flat>
-								          <v-card-text>
+								          <v-card-text id="containerExer">
 								          	<v-tabs vertical v-model="tabSection">
 								          		<template v-for="(section, i) in skill.sections">
 													      <v-tab v-if="skill.sections.length" :key="i" class="tab-section">
@@ -428,20 +383,37 @@
 													        {{ section.section_title }}
 													      </v-tab>
 												    	</template>
-								     					<v-icon @click="openDialogSection(index)">mdi-plus</v-icon>
-
+                              <div class="txtAddSection" @click="openDialogSection(index)">
+								     					  <v-icon color="#5867dd">mdi-plus</v-icon> Section
+                              </div>
 															<template v-for="(section, i) in skill.sections">
 																<v-tab-item v-if="skill.sections.length" :key="i">
 													        <v-card flat class="ml-4">
-																		<h3 style="cursor: pointer;" @click="editSection(index, i)">{{section.section_description}}
-															    		<v-icon right>mdi-file-document-edit-outline</v-icon>
+																		<h3>{{section.section_description}}
+                                      <v-tooltip top>
+                                        <template v-slot:activator="{ on, attrs }">
+                                          <v-icon v-bind="attrs" v-on="on" @click="editSection(index, i)" right>mdi-file-document-edit-outline</v-icon>
+                                        </template>
+                                        <span>Edit Section</span>
+                                      </v-tooltip>
+                                      <v-tooltip top>
+                                        <template v-slot:activator="{ on, attrs }">
+                                          <v-icon v-bind="attrs" v-on="on" @click="deleteSection(index, i)" right>mdi-delete</v-icon>
+                                        </template>
+                                        <span>Delete Section</span>
+                                      </v-tooltip>
 															    	</h3>
 													          <div class="mt-4">
 																      <v-btn @click="openDialogElement(index, i)" class="ma-2 btn-add-file" depressed outlined large>
-																	      <v-icon left v-if="section.element_data != null">mdi-file-image</v-icon> Add Element
-																	      <v-icon left v-if="section.element_data == null">mdi-file-image</v-icon> Edit Element
+                                        <template v-if="section.element_type != null && section.element_data != null">
+                                          <v-icon left>mdi-file-image</v-icon> Edit Element
+                                        </template>
+                                        <template v-if="section.element_type == null && section.element_data == null">
+                                          <v-icon left>mdi-file-image</v-icon> Add Element
+                                        </template>
 																	    </v-btn>
 																  	</div>
+                                    <v-icon right v-if="section.element_type != null && section.element_data != null" @click="deleteElement(index, i)">mdi-delete</v-icon>
 																  	<div class="mt-4" v-if="section.element_type != null && section.element_data != null">
 																  		<vuetify-audio v-if="section.element_type =='Audio'" :file="section.element_data" color="success"></vuetify-audio>
 																			<v-img style="max-width: 60%; max-height: 450px" v-if="section.element_type =='Image'" :src="section.element_data"></v-img>
@@ -461,7 +433,7 @@
 																			<pdf class="css-element-pdf" v-if="section.element_type =='PDF_file'" :src="section.element_data"></pdf>
 																			<ckeditor style="max-height: 450px" v-if="section.element_type =='Post'" :editor="editor" v-model="section.element_data"></ckeditor>
 																  	</div>
-																  	<div class="mt-4">
+																  	<div class="mt-4" id="containerExer">
 																  		<v-btn :class="{ 'scroll-btn-exer' : scrollBtnExer }" @click="openDialogExercise(index, i)" class="ma-2 btn-add-exer" x-small large>
 																	      <v-icon dark>mdi-plus</v-icon>Add Exercise
 																	    </v-btn>
@@ -588,8 +560,7 @@
 	      </div>
 	    </div>
 	    <!--end: Wizard-->
-
-			<v-row>
+			<v-row justify="center">
 				<v-dialog v-model="dialogElement" persistent max-width="800px">
 			    <v-card>
 			      <v-card-title>
@@ -649,7 +620,6 @@
 			    </v-card>
 			  </v-dialog>
 			</v-row>
-
 			<v-row justify="center">
 			  <v-dialog v-model="dialogSkill" persistent max-width="600px">
 			    <v-card>
@@ -685,7 +655,6 @@
 			    </v-card>
 			  </v-dialog>
 			</v-row>
-
 	    <v-row justify="center">
 			  <v-dialog v-model="dialogSection" persistent max-width="600px">
 			    <v-card>
@@ -723,7 +692,6 @@
 			    </v-card>
 			  </v-dialog>
 			</v-row>
-
 			<v-row justify="center">
 			  <v-dialog v-model="dialogExercise" persistent max-width="800px">
 			    <v-card>
@@ -799,13 +767,30 @@
 									  		</div>
 									  	</template>
 									  </v-col>
+                    <!-- <v-col cols="12">
+                      <template v-for="(correct, i) in correctMatching">
+                        <div style="display: flex;" :key="i">
+                          <v-col cols="5">
+                            <v-select
+                              :items="optionMatching"
+                              label="Question"
+                              required
+                            ></v-select>
+                          </v-col>
+                          <v-col cols="7">
+                            <v-text-field
+                              @change="changeValueCorrectMatching($event, i, option)"
+                              label="Correct"
+                              required
+                              :value="correct.correct"
+                              >
+                            </v-text-field>
+                          </v-col>
+                        </div>
+                      </template>
+                    </v-col> -->
 			            </template>
 									<template v-if="data_type_question == 'List Selection'">
-			            	<v-col cols="3">
-			            		<v-btn large @click="addOptionListSelection">
-									      <v-icon>mdi-plus</v-icon>
-									    </v-btn>
-			            	</v-col>
 			            	<v-col cols="12">
 			            		<template v-for="(option, i) in optionListSelection">
 				            		<v-row align="center" :key="i">
@@ -818,6 +803,11 @@
 								        </v-row>
 							      	</template>
 									  </v-col>
+                    <v-col cols="3">
+                      <v-btn large @click="addOptionListSelection">
+                        <v-icon>mdi-plus</v-icon>
+                      </v-btn>
+                    </v-col>
 									</template>
 									<template v-if="data_type_question == 'Short Answer'">
 			            	<v-col cols="3">
@@ -845,7 +835,7 @@
 				            </v-col>
 				            <v-col>
 				            	<v-btn class="btn-add-file" depressed outlined large @click="openDialogShortAnswer">
-									      <v-icon left >mdi-plus</v-icon> Add Answer
+									      <v-icon left >mdi-plus</v-icon> Add Question
 									    </v-btn>
 				            </v-col>
 			            </template>
@@ -898,7 +888,6 @@
 			    </v-card>
 			  </v-dialog>
 			</v-row>
-
 			<v-row justify="center">
 			  <v-dialog v-model="dialogQuestion" persistent max-width="900px">
 			    <v-card>
@@ -950,30 +939,25 @@
 									  </v-col>
 			            </template>
 			            <template v-if="data_type_question == 'Single Choice'">
+                    <v-col cols="12">
+                      <v-radio-group v-model="correctSingleChoice">
+                        <template v-for="(option, i) in optionAnswerSingleChoice">
+                          <v-radio :value="option" :key="i">
+                            <template v-slot:label>
+                              <v-text-field :label="'Option'+i" :value="option" @change="changeValueSingleChoice($event, i)"></v-text-field>
+                              <v-btn class="mb-2"><v-icon @click="deleteOptionSingleChoice(i)">mdi-delete</v-icon></v-btn>
+                            </template>
+                          </v-radio>
+                        </template>
+                      </v-radio-group>
+                    </v-col>
 			            	<v-col cols="3">
 			            		<v-btn large @click="addOptionSingleChoice">
 									      <v-icon>mdi-plus</v-icon>
 									    </v-btn>
 			            	</v-col>
-			            	<v-col cols="12">
-				            	<v-radio-group v-model="correctSingleChoice">
-				            		<template v-for="(option, i) in optionAnswerSingleChoice">
-											    <v-radio :value="option" :key="i">
-										        <template v-slot:label>
-										          <v-text-field :label="'Option'+i" :value="option" @change="changeValueSingleChoice($event, i)"></v-text-field>
-										          <v-btn class="mb-2"><v-icon @click="deleteOptionSingleChoice(i)">mdi-delete</v-icon></v-btn>
-										        </template>
-										      </v-radio>
-				            		</template>
-										  </v-radio-group>
-									  </v-col>
 			            </template>
 			            <template v-if="data_type_question == 'Single Select'">
-			            	<v-col cols="3">
-			            		<v-btn large @click="addOptionSingleSelect">
-									      <v-icon>mdi-plus</v-icon>
-									    </v-btn>
-			            	</v-col>
 			            	<v-col cols="12">
 				            	<v-radio-group v-model="correctSingleSelect">
 				            		<template v-for="(option, i) in optionAnswerSingleSelect">
@@ -986,13 +970,13 @@
 				            		</template>
 										  </v-radio-group>
 									  </v-col>
+                    <v-col cols="3">
+                      <v-btn large @click="addOptionSingleSelect">
+                        <v-icon>mdi-plus</v-icon>
+                      </v-btn>
+                    </v-col>
 			            </template>
 			            <template v-if="data_type_question == 'Multiple Choice'">
-			            	<v-col cols="3">
-			            		<v-btn large @click="addOptionMultipleChoice">
-									      <v-icon>mdi-plus</v-icon>
-									    </v-btn>
-			            	</v-col>
 			            	<v-col cols="12">
 			            		<template v-for="(option, i) in optionAnswerMultipleChoice">
 				            		<v-row align="center" :key="i">
@@ -1005,6 +989,11 @@
 								        </v-row>
 							      	</template>
 									  </v-col>
+                    <v-col cols="3">
+                      <v-btn large @click="addOptionMultipleChoice">
+                        <v-icon>mdi-plus</v-icon>
+                      </v-btn>
+                    </v-col>
 			            </template>
 			            <template v-if="data_type_question == 'Paragraph'">
 			            	<v-col cols="3">
@@ -1027,7 +1016,6 @@
 			    </v-card>
 			  </v-dialog>
 			</v-row>
-
 			<v-row justify="center">
 			  <v-dialog v-model="dialogShortAnswer" persistent max-width="600px">
 			    <v-card>
@@ -1042,23 +1030,23 @@
 			      <v-card-text>
 			        <v-container>
 			          <v-row>
-			          	<v-col cols="3">
-		            		<v-btn large @click="addOptionShortAnswer">
-								      <v-icon>mdi-plus</v-icon>
-								    </v-btn>
-		            	</v-col>
 			            <v-col cols="12">
 			            	<v-radio-group v-model="correctOptShortAn">
 			            		<template v-for="(option, i) in optionShortAnswer">
 										    <v-radio :value="option" :key="i">
 									        <template v-slot:label>
-									          <v-text-field :label="'Option'+i" :value="option" @change="changeValueShortAnswer($event, i)"></v-text-field>
+									          <v-text-field :label="'Option'+ (i+1)" :value="option" @change="changeValueShortAnswer($event, i)"></v-text-field>
 									          <v-btn class="mb-2"><v-icon @click="deleteOptionShortAnswer(i)">mdi-delete</v-icon></v-btn>
 									        </template>
 									      </v-radio>
 			            		</template>
 									  </v-radio-group>
 								  </v-col>
+                  <v-col cols="3">
+                    <v-btn large @click="addOptionShortAnswer">
+                      <v-icon>mdi-plus</v-icon> Add Option
+                    </v-btn>
+                  </v-col>
 			          </v-row>
 			        </v-container>
 			      </v-card-text>
@@ -1070,24 +1058,30 @@
 			    </v-card>
 			  </v-dialog>
 			</v-row>
-      <div style="position: fixed; right: 20px; bottom: 80px" v-if="dataScroll.length">
-        <v-hover v-slot:default="{ hover }" open-delay="200">
-  				<v-card class="mx-auto" max-width="180" style="padding: 15px;">
-            <template v-for="(exercise, iExer) in dataScroll">
-              <div :key="iExer">
-    				    <h4 class="text-truncate text-scroll" v-scroll-to="'#exercise'+ iExer">
-    				      {{iExer +1}}. {{exercise.exercise_title}}
-    				    </h4>
-                <template v-for="(question, iQues) in exercise.questions">
-                  <p v-scroll-to="'#question'+ iQues" class="pl-4 text-truncate text-scroll" :key="iQues">
-                    {{iQues+1}}. {{ question.title }}
-                  </p>
-                </template>
-              </div>
+      <template v-if="currentStep == 2">
+        <div style="position: fixed; right: 20px; bottom: 80px" v-if="skills[tabSkill]">
+          <template v-if="skills[tabSkill].sections != undefined">
+            <template v-if="skills[tabSkill].sections[tabSection]">
+              <template v-if="skills[tabSkill].sections[tabSection].exercises != undefined">
+                <v-card class="mx-auto" max-width="180" style="padding: 15px;">
+                  <template v-for="(exercise, iExer) in skills[tabSkill].sections[tabSection].exercises">
+                    <div :key="iExer">
+                      <h4 class="text-truncate text-scroll" v-scroll-to="'#exercise'+ iExer">
+                        {{iExer +1}}. {{exercise.exercise_title}}
+                      </h4>
+                      <template v-for="(question, iQues) in exercise.questions">
+                        <p v-scroll-to="'#question'+ iQues" class="pl-4 text-truncate text-scroll" :key="iQues">
+                          {{iQues+1}}. {{ question.title }}
+                        </p>
+                      </template>
+                    </div>
+                  </template>
+                </v-card>
+              </template>
             </template>
-  			  </v-card>
-        </v-hover>
-			</div>
+          </template>
+        </div>
+      </template>
 	  </div>
 	</v-app>
 </template>
@@ -1119,6 +1113,7 @@ export default {
 	},
   data () {
     return {
+      currentStep: 1,
     	is_call_api: false,
     	is_loading_page: true,
     	test_title: '',
@@ -1156,15 +1151,15 @@ export default {
     	correctTrueFalse: null,
     	radioYesNo: null,
     	correctSingleChoice: null,
-    	optionAnswerSingleChoice: ['Option 1', 'Option 2'],
+    	optionAnswerSingleChoice: ['', ''],
     	correctSingleSelect: null,
-    	optionAnswerSingleSelect: ['Option 1', 'Option 2'],
-    	optionAnswerMultipleChoice: [{ value:'Option 1', checked: false}, { value:'Option 2', checked: false}],
+    	optionAnswerSingleSelect: ['', ''],
+    	optionAnswerMultipleChoice: [{ value:'', checked: false}, { value:'', checked: false}],
     	correctOptShortAn: null,
-    	optionShortAnswer: ['Option 1', 'Option 2'],
+    	optionShortAnswer: [''],
     	correctMatching: [],
-    	optionMatching: ['Option 1', 'Option 2'],
-    	optionListSelection: [{ value:'Option 1', checked: false}, { value:'Option 2', checked: false}],
+    	optionMatching: ['', '', ''],
+    	optionListSelection: [{ value:'', checked: false}, { value:'', checked: false}],
 
     	tabSkill: null,
     	tabSection: null,
@@ -1193,19 +1188,9 @@ export default {
       skills: [],
     }
   },
-  computed: {
-    dataScroll: function () {
-      // if(this.skills.length && this.skills[this.tabSkill] != undefined) {
-      //   if(this.skills[this.tabSkill].sections != undefined && this.skills[this.tabSkill].sections[this.tabSection] != undefined) {
-      //     if(this.skills[this.tabSkill].sections[this.tabSection].exercises != undefined){
-      //       return this.skills[this.tabSkill].sections[this.tabSection].exercises;
-      //     }
-      //   }
-      // }
-      return [];
-    }
-  },
+  computed: {},
   mounted() {
+    let seft = this;
     this.$store.dispatch(SET_BREADCRUMB, [
       { title: "Wizard" },
       { title: "Wizard-1" }
@@ -1221,7 +1206,8 @@ export default {
       //wizardObj.stop();
     });
     // Change event
-    wizard.on("change", function(/*wizardObj*/) {
+    wizard.on("change", function(wizardObj) {
+      seft.currentStep = wizardObj.currentStep;
       setTimeout(() => {
         KTUtil.scrollTop();
       }, 500);
@@ -1441,6 +1427,38 @@ export default {
   		this.skills[this.indexSkill].sections.splice(this.indexSection, 1, data);
   		this.dialogSection = false;
   	},
+    deleteSection(indexSkill, indexSection){
+      let seft = this;
+      Swal.fire({
+        title: 'Are you sure you want to delete?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.value) {
+          seft.skills[indexSkill].sections.splice(indexSection, 1);
+        }
+      })
+    },
+    deleteElement(indexSkill, indexSection) {
+      let seft = this;
+      Swal.fire({
+        title: 'Are you sure you want to delete?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.value) {
+        seft.skills[indexSkill].sections[indexSection].element_data = null;
+        seft.skills[indexSkill].sections[indexSection].element_id = null;
+        seft.skills[indexSkill].sections[indexSection].element_type = null;
+      }
+      })
+    },
   	openDialogExercise(indexSkill, indexSection) {
   		this.type_form_exercise = 'add';
   		this.inputTitleExercise = null;
@@ -1452,9 +1470,9 @@ export default {
   		this.indexSkill 	= indexSkill;
   		this.indexSection = indexSection;
   		this.dialogExercise = true;
-  		this.optionMatching = ['Option 1', 'Option 2'];
+  		this.optionMatching = ['', ''];
   		this.correctMatching = [];
-  		this.optionListSelection = [{ value:'Option 1', checked: false}, { value:'Option 2', checked: false}];
+  		this.optionListSelection = [{ value:'', checked: false}, { value:'', checked: false}];
   		this.correctShortAnswer = null;
   	},
   	onElementExerciseChange(file) {
@@ -1514,6 +1532,8 @@ export default {
   			this.skills[this.indexSkill].sections[this.indexSection].exercises= [];
   		}
   		this.skills[this.indexSkill].sections[this.indexSection].exercises.push(data);
+      let container = this.$el.querySelector("#containerExer");
+      container.scrollTop = container.scrollHeight;
   		this.dialogExercise = false;
   	},
   	editExercise(indexSkill, indexSection, indexExercise) {
@@ -1608,6 +1628,9 @@ export default {
 			this.correctSingleChoice = null;
 			this.correctSingleSelect = null;
 			this.correctOptShortAn = null;
+      this.optionAnswerSingleSelect = ['', ''];
+      this.optionAnswerSingleChoice = ['', ''];
+      this.optionAnswerMultipleChoice = [{ value:'', checked: false}, { value:'', checked: false}];
   		this.dialogQuestion = true;
   	},
   	btnAddQuestion() {
@@ -1674,7 +1697,7 @@ export default {
   		this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].questions[indexRowQuestion].answers.push(dataAnswer);
   	},
   	openDialogShortAnswer() {
-  		this.optionShortAnswer = ['Option 1', 'Option 2'];
+  		this.optionShortAnswer = [''];
   		this.dialogShortAnswer = true;
   	},
   	btnAddShortAn() {
@@ -1695,8 +1718,8 @@ export default {
 		  self.correctShortAnswer = tmpStr + ' ' +insertFirst + this.optionShortAnswer.join("/") + insertLast;
 		  //move cursor:
 		  setTimeout(() => {
-		    cursorPos += insertFirst.length;
-		    tArea.selectionStart = tArea.selectionEnd = cursorPos;
+		    //cursorPos += insertLast.length;
+		    tArea.selectionStart = tArea.selectionEnd;
 		  }, 10);
 		  this.dialogShortAnswer = false;
   	},
@@ -1704,8 +1727,8 @@ export default {
   		this.optionAnswerSingleChoice.splice(i, 1, event);
   	},
   	addOptionSingleChoice() {
-  		let index = this.optionAnswerSingleChoice.length +1;
-  		let data = 'Option ' + index;
+  		//let index = this.optionAnswerSingleChoice.length +1;
+  		let data = '';
 			this.optionAnswerSingleChoice.push(data);
   	},
   	deleteOptionSingleChoice(i) {
@@ -1715,16 +1738,16 @@ export default {
   		this.optionAnswerSingleSelect.splice(i, 1, event);
   	},
   	addOptionSingleSelect() {
-  		let index = this.optionAnswerSingleSelect.length +1;
-  		let data = 'Option ' + index;
+  		//let index = this.optionAnswerSingleSelect.length +1;
+  		let data = '';
 			this.optionAnswerSingleSelect.push(data);
   	},
   	deleteOptionSingleSelect(i) {
   		this.optionAnswerSingleSelect.splice(i, 1);
   	},
   	addOptionShortAnswer() {
-  		let index = this.optionShortAnswer.length +1;
-  		let data = 'Option ' + index;
+  		//let index = this.optionShortAnswer.length +1;
+  		let data = '';
 			this.optionShortAnswer.push(data);
   	},
 		changeValueShortAnswer(event, i) {
@@ -1734,9 +1757,9 @@ export default {
   		this.optionShortAnswer.splice(i, 1);
   	},
   	addOptionMultipleChoice() {
-  		let index = this.optionAnswerMultipleChoice.length +1;
+  		//let index = this.optionAnswerMultipleChoice.length +1;
   		let data = {
-  			value: 'Option ' + index,
+  			value: '',
   			checked: false,
   		}
 			this.optionAnswerMultipleChoice.push(data);
@@ -1745,8 +1768,8 @@ export default {
   		this.optionAnswerMultipleChoice.splice(i, 1);
   	},
   	addOptionMatching() {
-  		let index = this.optionMatching.length +1;
-  		let data = 'Option ' + index;
+  		//let index = this.optionMatching.length +1;
+  		let data = '';
 			this.optionMatching.push(data).length;
 			if(this.type_form_exercise == 'update') {
 				let dataMatching = {
@@ -1770,9 +1793,9 @@ export default {
 			}
   	},
   	addOptionListSelection() {
-  		let index = this.optionListSelection.length +1;
+  		//let index = this.optionListSelection.length +1;
   		let data = {
-  			value: 'Option ' + index,
+  			value: '',
   			checked: false,
   		}
 			this.optionListSelection.push(data);
@@ -1787,6 +1810,13 @@ export default {
 <style lang="css" scoped>
 .icon-skill {
 	padding-right: 10px;
+}
+.txtAddSection {
+  text-align: center;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  font-weight: bold;
+  cursor: pointer;
 }
 .default-padding{
 	padding: 0;
