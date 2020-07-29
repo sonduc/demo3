@@ -727,11 +727,6 @@
 			            </v-col>
 
 									<template v-if="data_type_question == 'Matching'">
-										<v-col cols="3">
-				            	<v-btn large @click="addOptionMatching">
-										    <v-icon>mdi-plus</v-icon>
-										  </v-btn>
-				            </v-col>
 			            	<v-col cols="7">
 			            		<template v-for="(option, i) in optionMatching">
 					            	<v-text-field
@@ -744,11 +739,11 @@
 					            </template>
 									  </v-col>
 									  <v-col cols="12">
-									  	<v-btn large>
-										    <v-icon>mdi-plus</v-icon> Matching to
+				            	<v-btn large @click="addOptionMatching">
+										    <v-icon>mdi-plus</v-icon>
 										  </v-btn>
-									  </v-col>
-									  <v-col cols="12">
+				            </v-col>
+									  <!-- <v-col cols="12">
 									  	<template v-for="(option, i) in optionMatching">
 									  		<div style="display: flex;" :key="i">
 									  			<v-col cols="5">
@@ -766,8 +761,8 @@
 													</v-col>
 									  		</div>
 									  	</template>
-									  </v-col>
-                    <!-- <v-col cols="12">
+									  </v-col> -->
+                    <v-col cols="12">
                       <template v-for="(correct, i) in correctMatching">
                         <div style="display: flex;" :key="i">
                           <v-col cols="5">
@@ -775,20 +770,25 @@
                               :items="optionMatching"
                               label="Question"
                               required
+                              v-model="correct.value"
                             ></v-select>
                           </v-col>
                           <v-col cols="7">
                             <v-text-field
-                              @change="changeValueCorrectMatching($event, i, option)"
                               label="Correct"
                               required
-                              :value="correct.correct"
+                              v-model="correct.correct"
                               >
                             </v-text-field>
                           </v-col>
                         </div>
                       </template>
-                    </v-col> -->
+                    </v-col>
+                    <v-col cols="12">
+									  	<v-btn large @click="addCorrectMatching">
+										    <v-icon>mdi-plus</v-icon> Add Answer
+										  </v-btn>
+									  </v-col>
 			            </template>
 									<template v-if="data_type_question == 'List Selection'">
 			            	<v-col cols="12">
@@ -1157,7 +1157,7 @@ export default {
     	optionAnswerMultipleChoice: [{ value:'', checked: false}, { value:'', checked: false}],
     	correctOptShortAn: null,
     	optionShortAnswer: [''],
-    	correctMatching: [],
+    	correctMatching: [{ correct: ''}],
     	optionMatching: ['', '', ''],
     	optionListSelection: [{ value:'', checked: false}, { value:'', checked: false}],
 
@@ -1471,7 +1471,7 @@ export default {
   		this.indexSection = indexSection;
   		this.dialogExercise = true;
   		this.optionMatching = ['', ''];
-  		this.correctMatching = [];
+  		this.correctMatching = [{ correct: ''}];
   		this.optionListSelection = [{ value:'', checked: false}, { value:'', checked: false}];
   		this.correctShortAnswer = null;
   	},
@@ -1780,6 +1780,12 @@ export default {
   	},
   	changeValueMatching(event, i) {
   		this.optionMatching.splice(i, 1, event);
+  	},
+  	addCorrectMatching() {
+  		let dataMatching = {
+					correct: ''
+				}
+				this.correctMatching.push(dataMatching);
   	},
   	changeValueCorrectMatching(event, i, option) {
 			if(this.correctMatching[i]) {
