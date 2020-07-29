@@ -34,7 +34,7 @@
           </div>
         </div>
 
-        <div
+        <!-- <div
           role="alert"
           v-bind:class="{ show: errors.length }"
           class="alert fade alert-danger"
@@ -42,7 +42,7 @@
           <div class="alert-text" v-for="(error, i) in errors" :key="i">
             {{ error }}
           </div>
-        </div>
+        </div> -->
 
         <b-form-group
           id="example-input-group-1"
@@ -116,11 +116,12 @@
 </style>
 
 <script>
-import { mapState } from "vuex";
-import { LOGIN, LOGOUT } from "@/core/services/store/auth.module";
+//import { mapState } from "vuex";
+//import { LOGIN, LOGOUT } from "@/core/services/store/auth.module";
 
 import { validationMixin } from "vuelidate";
-import { email, minLength, required } from "vuelidate/lib/validators";
+import { minLength, required } from "vuelidate/lib/validators";
+import Auth from "@/core/services/auth";
 
 export default {
   mixins: [validationMixin],
@@ -129,16 +130,15 @@ export default {
     return {
       // Remove this dummy login info
       form: {
-        email: "admin@demo.com",
-        password: "demo"
+        email: "tupham",
+        password: "Hanoi123"
       }
     };
   },
   validations: {
     form: {
       email: {
-        required,
-        email
+        required
       },
       password: {
         required,
@@ -151,52 +151,63 @@ export default {
       const { $dirty, $error } = this.$v.form[name];
       return $dirty ? !$error : null;
     },
-    resetForm() {
-      this.form = {
-        email: null,
-        password: null
-      };
-
-      this.$nextTick(() => {
-        this.$v.$reset();
-      });
-    },
     onSubmit() {
-      this.$v.form.$touch();
-      if (this.$v.form.$anyError) {
-        return;
+      this.$v.$touch();
+
+      if (!this.$v.$error) {
+        Auth.login(this.form).then(res => {
+          if (res) {
+            this.$router.push("/");
+          }
+        });
       }
-
-      const email = this.$v.form.email.$model;
-      const password = this.$v.form.password.$model;
-
-      // clear existing errors
-      this.$store.dispatch(LOGOUT);
-
-      // set spinner to submit button
-      const submitButton = this.$refs["kt_login_signin_submit"];
-      submitButton.classList.add("spinner", "spinner-light", "spinner-right");
-
-      // dummy delay
-      setTimeout(() => {
-        // send login request
-        this.$store
-          .dispatch(LOGIN, { email, password })
-          // go to which page after successfully login
-          .then(() => this.$router.push({ name: "dashboard" }));
-
-        submitButton.classList.remove(
-          "spinner",
-          "spinner-light",
-          "spinner-right"
-        );
-      }, 2000);
     }
+    // resetForm() {
+    //   this.form = {
+    //     email: null,
+    //     password: null
+    //   };
+
+    //   this.$nextTick(() => {
+    //     this.$v.$reset();
+    //   });
+    // },
+    // onSubmit() {
+    //   this.$v.form.$touch();
+    //   if (this.$v.form.$anyError) {
+    //     return;
+    //   }
+
+    //   const email = this.$v.form.email.$model;
+    //   const password = this.$v.form.password.$model;
+
+    //   // clear existing errors
+    //   this.$store.dispatch(LOGOUT);
+
+    //   // set spinner to submit button
+    //   const submitButton = this.$refs["kt_login_signin_submit"];
+    //   submitButton.classList.add("spinner", "spinner-light", "spinner-right");
+
+    //   // dummy delay
+    //   setTimeout(() => {
+    //     // send login request
+    //     this.$store
+    //       .dispatch(LOGIN, { email, password })
+    //       // go to which page after successfully login
+    //       .then(() => this.$router.push({ name: "dashboard" }));
+
+    //     submitButton.classList.remove(
+    //       "spinner",
+    //       "spinner-light",
+    //       "spinner-right"
+    //     );
+    //   }, 2000);
+    // }
   },
   computed: {
-    ...mapState({
-      errors: state => state.auth.errors
-    })
+    // ...mapState({
+    //   errors: state => state.auth.errors
+    // })
   }
 };
 </script>

@@ -366,7 +366,6 @@
 								        {{ skill.skill_type }}
 								      	<v-icon right @click="deleteSkill(index)">mdi-close</v-icon>
 								      </v-tab>
-
 								    </v-tabs>
 
 								    <v-tabs-items v-model="tabSkill">
@@ -467,10 +466,19 @@
 																			  	</div>
 																			  	<div>
 																			  		<template v-if="exercise.exercise_type == 'Matching'">
-																							<template v-for="(body, iBody) in exercise.body">
+																							<template v-for="(correct, iBody) in exercise.body.correct">
 																								<div style="display: flex;" class="ml-12" :key="iBody">
-																									<h5>{{iBody+1}}.</h5>
-																									<p style="font-size: medium;">{{body.option}} - {{body.correct}}</p>
+																									<h5 style="line-height: 3">{{iBody+1}}.</h5>
+                                                  <v-col cols="5">
+                                                    <v-select
+                                                      class="pt-0"
+                                                      :items="exercise.body.option"
+                                                      label="Option"
+                                                      required
+                                                      v-model="correct.index"
+                                                    ></v-select>
+                                                  </v-col>
+																									<p style="font-size: medium; line-height: 3"> - {{correct.value}}</p>
 																								</div>
 																							</template>
 																						</template>
@@ -485,12 +493,14 @@
 																			      	</template>
 																						</template>
 																						<template v-else-if="exercise.exercise_type =='Short Answer'">
-																							<v-textarea
-																			          label=""
-																								disabled
-																			          filled
-																			          :value="exercise.body"
-																			        ></v-textarea>
+                                              <div @click="editExercise(index, i, iExer)">
+  																							<v-textarea
+  																			          label=""
+  																								disabled
+  																			          filled
+  																			          :value="exercise.body"
+  																			        ></v-textarea>
+                                              </div>
 																						</template>
 																						<template v-else>
 																							<v-btn @click="openDialogQuestion(index, i, iExer)" class="ma-2 btn-add-exer" x-small large>
@@ -511,11 +521,9 @@
 																		    </div>
 																	  	</template>
 																  	</div>
-
 													        </v-card>
 													      </v-tab-item>
 															</template>
-
 												    </v-tabs>
 								          </v-card-text>
 								        </v-card>
@@ -725,68 +733,53 @@
 			                v-model="data_type_question"
 			              ></v-select>
 			            </v-col>
-
 									<template v-if="data_type_question == 'Matching'">
 			            	<v-col cols="7">
 			            		<template v-for="(option, i) in optionMatching">
-					            	<v-text-field
-					            		:key="i"
-						              :label="'Question' + (i+1)"
-						              :value="option"
-						              required
-						              @change="changeValueMatching($event, i)"
-						            ></v-text-field>
+                        <div style="display: flex;" :key="i">
+  					            	<v-text-field
+  						              :label="'Option' + (i+1)"
+  						              :value="option"
+  						              required
+  						              @change="changeValueMatching($event, i)"
+  						            ></v-text-field>
+                          <v-btn class="mt-3" @click="deleteOptionMatching(i)"><v-icon>mdi-delete</v-icon></v-btn>
+                        </div>
 					            </template>
 									  </v-col>
 									  <v-col cols="12">
 				            	<v-btn large @click="addOptionMatching">
-										    <v-icon>mdi-plus</v-icon>
+										    <v-icon>mdi-plus</v-icon> Add Option
 										  </v-btn>
 				            </v-col>
-									  <!-- <v-col cols="12">
-									  	<template v-for="(option, i) in optionMatching">
-									  		<div style="display: flex;" :key="i">
-									  			<v-col cols="5">
-							              <v-text-field readonly label="Question" :value="option" required></v-text-field>
-													</v-col>
-													<v-col cols="7">
-														<v-text-field v-if="type_form_exercise == 'update'"
-															@change="changeValueCorrectMatching($event, i, option)"
-															label="Correct"
-															required
-															:value="correctMatching[i].correct"
-															>
-														</v-text-field>
-														<v-text-field v-else @change="changeValueCorrectMatching($event, i, option)" label="Correct" required></v-text-field>
-													</v-col>
-									  		</div>
-									  	</template>
-									  </v-col> -->
                     <v-col cols="12">
                       <template v-for="(correct, i) in correctMatching">
                         <div style="display: flex;" :key="i">
-                          <v-col cols="5">
+                          <v-col cols="4">
                             <v-select
                               :items="optionMatching"
-                              label="Question"
+                              label="Select Correct"
                               required
-                              v-model="correct.value"
+                              v-model="correct.index"
                             ></v-select>
                           </v-col>
                           <v-col cols="7">
                             <v-text-field
-                              label="Correct"
+                              label="Question"
                               required
-                              v-model="correct.correct"
+                              v-model="correct.value"
                               >
                             </v-text-field>
+                          </v-col>
+                          <v-col cols="1">
+                            <v-btn class="mt-3" @click="deleteQuestionMatching(i)"><v-icon>mdi-delete</v-icon></v-btn>
                           </v-col>
                         </div>
                       </template>
                     </v-col>
                     <v-col cols="12">
 									  	<v-btn large @click="addCorrectMatching">
-										    <v-icon>mdi-plus</v-icon> Add Answer
+										    <v-icon>mdi-plus</v-icon> Add Question
 										  </v-btn>
 									  </v-col>
 			            </template>
@@ -825,13 +818,15 @@
 					            ></v-text-field>
 				            </v-col>
 				            <v-col cols="12">
-				            	<v-textarea
-							          filled
+				            	<textarea
+                        style="width: 100%; background-color: #f0f0f0; outline: none; font-size: medium;"
+                        class="pt-2 pl-2"
+                        rows="7"
 							          label=""
 							          v-model.trim="correctShortAnswer"
-							          ref="correctShortAnswer"
-							        ></v-textarea>
-					            <!-- <ckeditor :editor="editor" v-model="editorData"></ckeditor> -->
+							          ref="refShortAnswer"
+							        ></textarea>
+                      <!-- <ckeditor :editor="editor" v-model.trim="correctShortAnswer" ref="refShortAnswer"></ckeditor> -->
 				            </v-col>
 				            <v-col>
 				            	<v-btn class="btn-add-file" depressed outlined large @click="openDialogShortAnswer">
@@ -1157,7 +1152,7 @@ export default {
     	optionAnswerMultipleChoice: [{ value:'', checked: false}, { value:'', checked: false}],
     	correctOptShortAn: null,
     	optionShortAnswer: [''],
-    	correctMatching: [{ correct: ''}],
+    	correctMatching: [{ value: ''}],
     	optionMatching: ['', '', ''],
     	optionListSelection: [{ value:'', checked: false}, { value:'', checked: false}],
 
@@ -1471,7 +1466,7 @@ export default {
   		this.indexSection = indexSection;
   		this.dialogExercise = true;
   		this.optionMatching = ['', ''];
-  		this.correctMatching = [{ correct: ''}];
+  		this.correctMatching = [{ value: ''}];
   		this.optionListSelection = [{ value:'', checked: false}, { value:'', checked: false}];
   		this.correctShortAnswer = null;
   	},
@@ -1508,7 +1503,10 @@ export default {
 
   		let body;
   		if(this.data_type_question == "Matching") {
-  			body = this.correctMatching;
+  			body = {
+          option: this.optionMatching,
+          correct: this.correctMatching
+        };
   		} else if(this.data_type_question == "List Selection") {
   			body = this.optionListSelection;
   		} else if (this.data_type_question == "Short Answer") {
@@ -1531,10 +1529,12 @@ export default {
   		if(dataCheck == undefined || dataCheck == null) {
   			this.skills[this.indexSkill].sections[this.indexSection].exercises= [];
   		}
-  		this.skills[this.indexSkill].sections[this.indexSection].exercises.push(data);
-      let container = this.$el.querySelector("#containerExer");
-      container.scrollTop = container.scrollHeight;
+  		let indexExer = this.skills[this.indexSkill].sections[this.indexSection].exercises.push(data) - 1;
+      //this.$scrollTo('#exercise'+indexExer, 1000);
   		this.dialogExercise = false;
+      setTimeout(() => {
+        this.$scrollTo('#exercise'+indexExer, 1000);
+      }, 100);
   	},
   	editExercise(indexSkill, indexSection, indexExercise) {
 			this.type_form_exercise = 'update';
@@ -1550,10 +1550,8 @@ export default {
 			this.element_data_exercise = data.element_data;
 			this.toggle_element = data.is_element;
 			if(data.exercise_type == 'Matching') {
-				this.correctMatching = data.body;
-				this.optionMatching = data.body.map(function(item) {
-				  return item.option;
-				});
+				this.correctMatching = data.body.correct;
+				this.optionMatching = data.body.option;
 			} else if(data.exercise_type == 'List Selection') {
 				this.optionListSelection = data.body;
 			} else if(data.exercise_type == 'Short Answer') {
@@ -1595,7 +1593,10 @@ export default {
 
   		let body;
   		if(this.data_type_question == "Matching") {
-  			body = this.correctMatching;
+  			body = {
+          option: this.optionMatching,
+          correct: this.correctMatching
+        };
   		} else if(this.data_type_question == "List Selection") {
   			body = this.optionListSelection;
   		} else if(this.data_type_question == "Short Answer") {
@@ -1646,6 +1647,9 @@ export default {
 
 			this.actionAddAnswer(indexRowQuestion, this.skills[this.indexSkill].sections[this.indexSection].exercises[this.indexExercise].exercise_type);
   		this.dialogQuestion = false;
+      setTimeout(() => {
+        this.$scrollTo('#question'+indexRowQuestion, 1000);
+      }, 100);
   	},
   	deleteQuestion(indexSkill, indexSection, indexExercise, indexQuestion) {
   		let seft = this;
@@ -1700,29 +1704,31 @@ export default {
   		this.optionShortAnswer = [''];
   		this.dialogShortAnswer = true;
   	},
-  	btnAddShortAn() {
-  		let insertFirst = '{{';
-  		let insertLast = '}}';
-  		let self = this;
-		  let tArea = this.$refs.correctShortAnswer;
-			// get cursor's position:
-		  let startPos = tArea.selectionStart;
-		  //let endPos = tArea.selectionEnd;
-		  let cursorPos = startPos;
-		  let tmpStr = tArea.value;
-		  if (0 == cursorPos) {
-		    return;
-		  }
-		  // insert:
-		  //self.correctShortAnswer = tmpStr.substring(0, startPos)+ insertFirst + insertLast + tmpStr.substring(endPos, tmpStr.length);
-		  self.correctShortAnswer = tmpStr + ' ' +insertFirst + this.optionShortAnswer.join("/") + insertLast;
-		  //move cursor:
-		  setTimeout(() => {
-		    //cursorPos += insertLast.length;
-		    tArea.selectionStart = tArea.selectionEnd;
-		  }, 10);
-		  this.dialogShortAnswer = false;
-  	},
+    btnAddShortAn() {
+        let insertFirst = '{{';
+        let insertLast = '}}';
+        let self = this;
+        let tArea = this.$refs.refShortAnswer;
+        // filter:
+        if (0 == cursorPos) {
+          return;
+        }
+
+        // get cursor's position:
+        let startPos = tArea.selectionStart,
+          endPos = tArea.selectionEnd,
+          cursorPos = startPos,
+          tmpStr = tArea.value;
+
+        // insert:
+        self.correctShortAnswer = tmpStr.substring(0, startPos) + insertFirst + this.optionShortAnswer.join("/") + insertLast + tmpStr.substring(endPos, tmpStr.length);
+        // move cursor:
+        setTimeout(() => {
+          tArea.focus();
+          tArea.selectionEnd = self.correctShortAnswer.length;
+        }, 10);
+        this.dialogShortAnswer = false;
+    },
   	changeValueSingleChoice(event, i) {
   		this.optionAnswerSingleChoice.splice(i, 1, event);
   	},
@@ -1778,25 +1784,20 @@ export default {
 				this.correctMatching.push(dataMatching);
 			}
   	},
+    deleteQuestionMatching(i) {
+      this.correctMatching.splice(i, 1);
+    },
   	changeValueMatching(event, i) {
   		this.optionMatching.splice(i, 1, event);
   	},
+    deleteOptionMatching(i) {
+      this.optionMatching.splice(i, 1);
+    },
   	addCorrectMatching() {
   		let dataMatching = {
 					correct: ''
 				}
 				this.correctMatching.push(dataMatching);
-  	},
-  	changeValueCorrectMatching(event, i, option) {
-			if(this.correctMatching[i]) {
-			  this.correctMatching[i].correct = event;
-			  this.correctMatching[i].option = option;
-			} else{
-				this.correctMatching.push({
-					correct: event,
-					option: option,
-				});
-			}
   	},
   	addOptionListSelection() {
   		//let index = this.optionListSelection.length +1;

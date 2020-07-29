@@ -3,6 +3,7 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./core/services/store";
 import axios from "axios";
+import Ls from "@/core/services/jwt.service.js";
 //import ApiService from "./core/services/api.service";
 //import MockService from "./core/mock/mock.service";
 //import { VERIFY_AUTH } from "./core/services/store/auth.module";
@@ -40,6 +41,21 @@ window.axios.defaults.baseURL = 'https://ipp.test/api/';
 // window.axios.defaults.headers.common = {
 //   'X-Requested-With': 'XMLHttpRequest'
 // }
+window.axios.interceptors.request.use(
+  function (config) {
+    // Do something before request is sent
+    const AUTH_TOKEN = Ls.getToken();
+    if (AUTH_TOKEN) {
+      config.headers.common['Authorization'] = `Bearer ${AUTH_TOKEN}`
+    }
+
+    return config
+  },
+  function (error) {
+    // Do something with request error
+    return Promise.reject(error)
+  }
+)
 // API service init
 //ApiService.init();
 
